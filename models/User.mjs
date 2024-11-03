@@ -1,0 +1,80 @@
+// models/User.mjs
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database.mjs';
+import Role from './Role.mjs';
+
+const User = sequelize.define('User', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  telegramId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
+  firstName: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  lastName: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'Guest',
+  },
+  money: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
+  totalMoney: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
+  profit: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
+  energy: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 1600,
+  },
+  lastEnergyUpdate: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+  },
+  rank: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
+  benefit: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
+  roleId: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: Role,
+      key: 'id',
+    },
+    allowNull: false,
+    defaultValue: 1, 
+  },
+}, {
+  tableName: 'users',
+});
+
+User.belongsTo(Role, { foreignKey: 'roleId', as: 'role' });
+
+export default User;
