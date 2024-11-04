@@ -33,7 +33,7 @@ export const login = async (req, res) => {
     }
     // Проверка или создание пользователя в базе данных
     let existingUser = await User.findOne({
-      where: { telegramId: user.telegramId },
+      where: { id: user.id },
       include: { model: Role, as: 'role', attributes: ['name'] },
     });
 
