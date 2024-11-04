@@ -2,8 +2,11 @@ import TelegramBot from 'node-telegram-bot-api';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import path from 'path'; // Импортируем path
-import { fileURLToPath } from 'url'; // Импортируем, чтобы создать __dirname
+import fs from 'fs';
+import https from 'https';
+import http from 'http';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import User from './models/User.mjs';
 import apiRouter from './routes/userRoutes.mjs';
 
@@ -25,6 +28,12 @@ const __dirname = path.dirname(__filename);
 // Укажите путь к папке build
 const buildPath = path.join(__dirname, 'build');
 app.use(express.static(buildPath));
+
+// SSL-конфигурация
+const sslOptions = {
+    key: fs.readFileSync(' /etc/letsencrypt/live/app.tongaroo.fun/privkey.pem'),   
+    cert: fs.readFileSync('/etc/letsencrypt/live/app.tongaroo.fun/fullchain.pem'),  
+};
 
 // Обработка команды /start для Telegram бота
 bot.on('message', async (msg) => {
@@ -56,7 +65,17 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(buildPath, 'index.html'));
 });
 
-const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => {
-    console.log(`Server started on port ${PORT}`);
+// Настройка HTTPS-сервера
+const HTTPS_PORT = process.env.HTTPS_PORT || 443;
+https.createServer(sslOptions, app).listen(HTTPS_PORT, () => {
+    console.log(`HTTPS Server started on port ${HTTPS_PORT}`);
+});
+
+// Настройка HTTP-сервера для перенаправления на HTTPS
+const HTTP_PORT = process.env.HTTP_PORT || 80;
+http.createServer((req, res) => {
+    res.writeHead(301, { Location: `https://${req.headers.host}${req.url}` });
+    res.end();
+}).listen(HTTP_PORT, () => {
+    console.log(`HTTP Server started on port ${HTTP_PORT} and redirecting to HTTPS`);
 });
