@@ -21,6 +21,7 @@ export const parseTelegramData = (initData) => {
     return null;
   }
 };
+
 export const login = async (req, res) => {
   try {
     const { query_id, user, auth_date, hash } = req.body;
@@ -29,9 +30,12 @@ export const login = async (req, res) => {
     if (!validateTelegramData({ query_id, user, auth_date, hash }, SECRET_BOT_TOKEN)) {
       return res.status(401).json({ message: 'Invalid Telegram data' });
     }
-
     // Проверка или создание пользователя в базе данных
-    let existingUser = await User.findOne({ telegramId: user.id });
+    let existingUser = await User.findOne({
+      where: { telegramId: user.telegramId },
+      include: { model: Role, attributes: ['name'] },
+    });
+
     if (!existingUser) {
       existingUser = await User.create({
         telegramId: user.id,
@@ -60,8 +64,8 @@ export const login = async (req, res) => {
       token,
       id: existingUser.id,
       telegramId: existingUser.telegramId,
-      name: `${existingUser.firstName} ${existingUser.lastName}` || existingUser.name ,
-      role: existingUser.roleId || 'CEO',
+      name: existingUser.firstName || existingUser.name ,
+      role: existingUser.roleId || 'User',
       money: existingUser.money,
       totalMoney: existingUser.totalMoney,
       profit: existingUser.profit,
@@ -95,11 +99,11 @@ export const addCoins = async (req, res) => {
     return res.status(401).json({ message: 'Unauthorized' });
   }
 
-  const { telegramId } = req.params;
+  const { id } = req.params;
   const { coins } = req.body;
 
   try {
-    const user = await User.findOne({ where: { telegramId } });
+    const user = await User.findOne({ where: { id } });
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     user.coins += coins;
@@ -119,10 +123,10 @@ export const checkEnergy = async (req, res) => {
     return res.status(401).json({ message: 'Unauthorized' });
   }
   
-  const { telegramId } = req.params;
+  const { id } = req.params;
 
   try {
-    const user = await User.findOne({ where: { telegramId } });
+    const user = await User.findOne({ where: { id } });
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     const now = new Date();
@@ -153,10 +157,10 @@ export const getUserCoins = async (req, res) => {
     return res.status(401).json({ message: 'Unauthorized' });
   }
 
-  const { telegramId } = req.params;
+  const { id } = req.params;
 
   try {
-    const user = await User.findOne({ where: { telegramId } });
+    const user = await User.findOne({ where: { id } });
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.json({ balance: user.coins || 0 });
   } catch (error) {

@@ -4,8 +4,8 @@ import { login, getUserCoins, addCoins, checkEnergy } from '../controllers/userC
 const router = express.Router();
 
 router.post('/login', login);
-router.get('/coins/:telegramId', getUserCoins);
-router.post('/add-coins/:telegramId', addCoins);
-router.get('/check-energy/:telegramId', checkEnergy);
+router.get('/coins/:id', getUserCoins);
+router.post('/add-coins/:id', addCoins);
+router.get('/check-energy/:id', checkEnergy);
 
 export default router;
