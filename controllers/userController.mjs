@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
 
 import User from '../models/User.mjs';
+import Role from '../models/Role.mjs';
 import { validateTelegramData } from '../meddleware/verificationTG.mjs';
 
 dotenv.config();
