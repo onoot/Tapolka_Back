@@ -148,13 +148,11 @@ export const addCoins = async (req, res) => {
       );
     });
 
-    // Refetch updated user data for response
     const updatedUser = await User.findOne({
       where: { id: user.id },
       attributes: ['id', 'money', 'energy', 'lastEnergyUpdate', 'updatedAt'],
     });
 
-    // Log the update details
     console.log(`Обновление: ${JSON.stringify(updatedUser)}\n`);
 
     return res.json({ message: 'Coins added successfully', user: updatedUser });
@@ -173,17 +171,36 @@ export const checkEnergy = async (req, res) => {
   if (!token || !VerifJWT(token)) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
-  
+
   const { id } = req.params;
 
   try {
+    // Получаем данные пользователя
     const user = await User.findOne({ where: { id } });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
     // Проверяем и обновляем энергию
-    const updatedEnergy = await checkAndRegenerateEnergy(user);
+    let updatedEnergy;
+    await User.sequelize.transaction(async (transaction) => {
+      updatedEnergy = await checkAndRegenerateEnergy(user, transaction);
 
-    res.json({ energy: updatedEnergy });
+      // Обновляем запись пользователя с новым значением энергии и временем последнего обновления
+      await user.update(
+        { energy: updatedEnergy, lastEnergyUpdate: new Date() },
+        { transaction }
+      );
+    });
+
+    // Повторно получаем обновленные данные пользователя для ответа
+    const updatedUser = await User.findOne({
+      where: { id: user.id },
+      attributes: ['id', 'energy', 'lastEnergyUpdate', 'updatedAt'],
+    });
+
+    // Отправляем ответ с обновленным значением энергии
+    res.json({ energy: updatedUser.energy });
   } catch (error) {
     console.error('Database error:', error);
     res.status(500).json({ message: 'Internal server error' });
