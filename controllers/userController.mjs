@@ -141,7 +141,7 @@ export const addCoins = async (req, res) => {
       console.log(`Updated user data: ${JSON.stringify(user)}`);
       return res.json({ message: 'Coins added successfully', user });
     } else {
-      return res.status(400).json({ message: 'Insufficient energy to add coins'+updatedEnergy+" "+coins });
+      return res.status(400).json({ message: 'Insufficient energy to add coins'+updatedEnergy+" "+req.body });
     }
   } catch (error) {
     console.error('Database error:', error);  
