@@ -109,11 +109,11 @@ const checkAndRegenerateEnergy = async (user) => {
 
   return newEnergy;
 };
-
-// Маршрут для добавления монет с проверкой энергии
+// Route for adding coins with energy verification
 export const addCoins = async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
 
+  // Validate JWT token
   if (!token || !VerifJWT(token)) {
     return res.status(401).json({ message: 'Unauthorized' });
   }
@@ -121,37 +121,55 @@ export const addCoins = async (req, res) => {
   const { id } = req.params;
   const { clicks } = req.body;
 
+  // Input validation
+  if (clicks <= 0 || !id) {
+    return res.status(400).json({ message: 'Invalid value' });
+  }
+
   try {
-    if (clicks <= 0 || !id) 
-      return res.status(400).json({ message: 'Invalid value' });
-    
+    // Fetch user data
     const user = await User.findOne({ where: { id } });
-    if (!user) 
+    if (!user) {
       return res.status(404).json({ message: 'User not found' });
+    }
 
-    // Проверяем и обновляем энергию
-    let updatedEnergy = await checkAndRegenerateEnergy(user);
+    // Check and update energy if necessary
+    const updatedEnergy = await checkAndRegenerateEnergy(user);
 
-    // Проверяем, достаточно ли энергии для совершения действия
-    if (updatedEnergy >= clicks) {
-      // Уменьшаем энергию и добавляем монеты
-      updatedEnergy -= clicks;
-      const newCoinBalance = user.coins + clicks;
-
-      // Обновляем пользователя в базе данных с новыми значениями энергии и монет
-      await user.update({ coins: newCoinBalance, energy: updatedEnergy, lastEnergyUpdate: new Date() });
-      const updatedUser = await User.findOne({ where: { id: user.id } });
-      console.log(`Обновление: ${JSON.stringify(updatedUser)}\n`);
-
-      return res.json({ message: 'Coins added successfully '+user });
-    } else {
+    // Validate if user has enough energy
+    if (updatedEnergy <= clicks) {
       return res.status(400).json({ message: 'Insufficient energy to add coins' });
     }
+
+    // Update energy and coins using a transaction to prevent race conditions
+    await User.sequelize.transaction(async (transaction) => {
+      const newCoinBalance = user.coins + clicks;
+      await user.update(
+        {
+          coins: newCoinBalance,
+          energy: updatedEnergy - clicks,
+          lastEnergyUpdate: new Date(),
+        },
+        { transaction }
+      );
+    });
+
+    // Refetch updated user data for response
+    const updatedUser = await User.findOne({
+      where: { id: user.id },
+      attributes: ['id', 'coins', 'energy', 'lastEnergyUpdate', 'updatedAt'],
+    });
+
+    // Log the update details
+    console.log(`Обновление: ${JSON.stringify(updatedUser)}\n`);
+
+    return res.json({ message: 'Coins added successfully', user: updatedUser });
   } catch (error) {
-    console.error('Database error:', error);  
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Database error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 
 // Маршрут для проверки энергии клиента
