@@ -92,7 +92,6 @@ export const VerifJWT = (token) => {
     return false;
   }
 };
-
 export const addCoins = async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
 
@@ -104,19 +103,18 @@ export const addCoins = async (req, res) => {
   const { coins } = req.body;
 
   try {
-    if (coins <= 0||!id) 
+    if (coins <= 0 || !id) 
       return res.status(400).json({ message: 'Invalid value' });
-    const user = await User.findOne({ where: { id:id } });
+    
+    const user = await User.findOne({ where: { id } });
     if (!user) 
       return res.status(404).json({ message: 'User not found' });
 
-    user.coins += coins;
-    await user.save();
+    const newCoinBalance = user.coins + coins;
+    await user.update({ coins: newCoinBalance });
 
-    const us = await User.findOne({ where: { id:id } });
-
-    console.log(us)
-    res.json({ message: 'Coins added successfully '+ us+" dsad" });
+    console.log(`Updated user data: ${JSON.stringify(user)}`);
+    res.json({ message: `Coins added successfully`, user });
   } catch (error) {
     console.error('Database error:', error);  
     res.status(500).json({ message: 'Internal server error' });
@@ -133,7 +131,7 @@ export const checkEnergy = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const user = await User.findOne({ where: { id } });
+    const user = await User.findOne({ where: { id:id } });
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     const now = new Date();
@@ -144,17 +142,16 @@ export const checkEnergy = async (req, res) => {
     const regeneratedEnergy = Math.min(user.energy + secondsSinceLastUpdate, 1600);
     const newEnergy = Math.min(regeneratedEnergy, 1600);
 
-    // Обновляем время последнего обновления и сохраняем данные
-    user.energy = newEnergy;
-    user.lastEnergyUpdate = now;
-    await user.save();
+    // Обновляем время последнего обновления и сохраняем данные через update
+    await user.update({ energy: newEnergy, lastEnergyUpdate: now });
 
-    res.json({ energy: user.energy });
+    res.json({ energy: newEnergy });
   } catch (error) {
     console.error('Database error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 // Контроллер для получения баланса пользователя
 export const getUserCoins = async (req, res) => {
