@@ -92,7 +92,6 @@ export const VerifJWT = (token) => {
     return false;
   }
 };
-
 // Универсальная функция для проверки и регенерации энергии
 const checkAndRegenerateEnergy = async (user) => {
   const now = new Date();
@@ -131,23 +130,29 @@ export const addCoins = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
 
     // Проверяем и обновляем энергию
-    const updatedEnergy = await checkAndRegenerateEnergy(user);
+    let updatedEnergy = await checkAndRegenerateEnergy(user);
 
-    // Добавляем монеты только если у пользователя есть энергия
-    if (updatedEnergy >=clicks) {
+    // Проверяем, достаточно ли энергии для совершения действия
+    if (updatedEnergy >= clicks) {
+      // Уменьшаем энергию и добавляем монеты
+      updatedEnergy -= clicks;
       const newCoinBalance = user.coins + clicks;
-      await user.update({ coins: newCoinBalance });
 
-      console.log(`Updated user data: ${JSON.stringify(user)}`);
-      return res.json({ message: 'Coins added successfully', user });
+      // Обновляем пользователя в базе данных с новыми значениями энергии и монет
+      await user.update({ coins: newCoinBalance, energy: updatedEnergy, lastEnergyUpdate: new Date() });
+      const updatedUser = await User.findOne({ where: { id: user.id } });
+      console.log(`Обновление: ${JSON.stringify(updatedUser)}\n`);
+
+      return res.json({ message: 'Coins added successfully '+user });
     } else {
-      return res.status(400).json({ message: 'Insufficient energy to add coins'});
+      return res.status(400).json({ message: 'Insufficient energy to add coins' });
     }
   } catch (error) {
     console.error('Database error:', error);  
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 // Маршрут для проверки энергии клиента
 export const checkEnergy = async (req, res) => {
