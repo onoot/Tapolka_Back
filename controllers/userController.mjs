@@ -92,6 +92,26 @@ export const VerifJWT = (token) => {
     return false;
   }
 };
+
+// Универсальная функция для проверки и регенерации энергии
+const checkAndRegenerateEnergy = async (user) => {
+  const now = new Date();
+  const lastUpdate = user.lastEnergyUpdate ? new Date(user.lastEnergyUpdate) : now;
+  const secondsSinceLastUpdate = Math.floor((now - lastUpdate) / 1000);
+
+  // Рассчитываем прирост энергии
+  const regeneratedEnergy = Math.min(user.energy + secondsSinceLastUpdate, 1600);
+  const newEnergy = Math.min(regeneratedEnergy, 1600);
+
+  // Обновляем время последнего обновления, если энергия изменилась
+  if (newEnergy !== user.energy) {
+    await user.update({ energy: newEnergy, lastEnergyUpdate: now });
+  }
+
+  return newEnergy;
+};
+
+// Маршрут для добавления монет с проверкой энергии
 export const addCoins = async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
 
@@ -110,17 +130,26 @@ export const addCoins = async (req, res) => {
     if (!user) 
       return res.status(404).json({ message: 'User not found' });
 
-    const newCoinBalance = user.coins + coins;
-    await user.update({ coins: newCoinBalance });
+    // Проверяем и обновляем энергию
+    const updatedEnergy = await checkAndRegenerateEnergy(user);
 
-    console.log(`Updated user data: ${JSON.stringify(user)}`);
-    res.json({ message: `Coins added successfully`, user });
+    // Добавляем монеты только если у пользователя есть энергия
+    if (updatedEnergy >=coins) {
+      const newCoinBalance = user.coins + coins;
+      await user.update({ coins: newCoinBalance });
+
+      console.log(`Updated user data: ${JSON.stringify(user)}`);
+      return res.json({ message: 'Coins added successfully', user });
+    } else {
+      return res.status(400).json({ message: 'Insufficient energy to add coins' });
+    }
   } catch (error) {
     console.error('Database error:', error);  
     res.status(500).json({ message: 'Internal server error' });
   }
 };
 
+// Маршрут для проверки энергии клиента
 export const checkEnergy = async (req, res) => {
   const token = req.headers.authorization?.split(' ')[1];
 
@@ -131,21 +160,13 @@ export const checkEnergy = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const user = await User.findOne({ where: { id:id } });
+    const user = await User.findOne({ where: { id } });
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    const now = new Date();
-    const lastUpdate = user.lastEnergyUpdate ? new Date(user.lastEnergyUpdate) : now;
-    const secondsSinceLastUpdate = Math.floor((now - lastUpdate) / 1000);
+    // Проверяем и обновляем энергию
+    const updatedEnergy = await checkAndRegenerateEnergy(user);
 
-    // Рассчитываем прирост энергии
-    const regeneratedEnergy = Math.min(user.energy + secondsSinceLastUpdate, 1600);
-    const newEnergy = Math.min(regeneratedEnergy, 1600);
-
-    // Обновляем время последнего обновления и сохраняем данные через update
-    await user.update({ energy: newEnergy, lastEnergyUpdate: now });
-
-    res.json({ energy: newEnergy });
+    res.json({ energy: updatedEnergy });
   } catch (error) {
     console.error('Database error:', error);
     res.status(500).json({ message: 'Internal server error' });
