@@ -120,10 +120,10 @@ export const addCoins = async (req, res) => {
   }
 
   const { id } = req.params;
-  const { coins } = req.body;
+  const { clicks } = req.body;
 
   try {
-    if (coins <= 0 || !id) 
+    if (clicks <= 0 || !id) 
       return res.status(400).json({ message: 'Invalid value' });
     
     const user = await User.findOne({ where: { id } });
@@ -134,14 +134,14 @@ export const addCoins = async (req, res) => {
     const updatedEnergy = await checkAndRegenerateEnergy(user);
 
     // Добавляем монеты только если у пользователя есть энергия
-    if (updatedEnergy >=coins) {
-      const newCoinBalance = user.coins + coins;
+    if (updatedEnergy >=clicks) {
+      const newCoinBalance = user.coins + clicks;
       await user.update({ coins: newCoinBalance });
 
       console.log(`Updated user data: ${JSON.stringify(user)}`);
       return res.json({ message: 'Coins added successfully', user });
     } else {
-      return res.status(400).json({ message: 'Insufficient energy to add coins'+updatedEnergy+" "+JSON.stringify(req.body) });
+      return res.status(400).json({ message: 'Insufficient energy to add coins'});
     }
   } catch (error) {
     console.error('Database error:', error);  
