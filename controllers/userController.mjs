@@ -116,7 +116,7 @@ export const addCoins = async (req, res) => {
     const us = await User.findOne({ where: { id:id } });
 
     console.log(us)
-    res.json({ message: 'Coins added successfully '+ us });
+    res.json({ message: 'Coins added successfully '+ us+" dsad" });
   } catch (error) {
     console.error('Database error:', error);  
     res.status(500).json({ message: 'Internal server error' });
