@@ -29,6 +29,15 @@ const __dirname = path.dirname(__filename);
 const buildPath = path.join(__dirname, 'build');
 app.use(express.static(buildPath));
 
+app.use((err, req, res, next) => {
+    if (err instanceof URIError) {
+        console.error("URIError detected: ", err.message);
+        res.status(400).send("Bad Request");
+    } else {
+        next(err);
+    }
+});
+
 // SSL-конфигурация
 const sslOptions = {
     key: fs.readFileSync(' /etc/letsencrypt/live/app.tongaroo.fun/privkey.pem'),   

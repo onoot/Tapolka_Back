@@ -46,10 +46,10 @@ export const login = async (req, res) => {
         money: 0,
         totalMoney: 0,
         profit: 0,
-        energy: 1000, // Начальное значение энергии
+        energy: 1000, 
         rank: 0,
         benefit: 0,
-        roleId: 'USER', // Начальная роль
+        roleId: 4,
       });
     }
 
@@ -66,7 +66,7 @@ export const login = async (req, res) => {
       id: existingUser.id,
       telegramId: existingUser.telegramId,
       name: existingUser.firstName || existingUser.name ,
-      role: existingUser.roleId || 'User',
+      role: existingUser.role.name || 'User',
       money: existingUser.money,
       totalMoney: existingUser.totalMoney,
       profit: existingUser.profit,
@@ -104,13 +104,19 @@ export const addCoins = async (req, res) => {
   const { coins } = req.body;
 
   try {
-    const user = await User.findOne({ where: { id } });
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (coins <= 0||!id) 
+      return res.status(400).json({ message: 'Invalid value' });
+    const user = await User.findOne({ where: { id:id } });
+    if (!user) 
+      return res.status(404).json({ message: 'User not found' });
 
     user.coins += coins;
     await user.save();
 
-    res.json({ message: 'Coins added successfully' });
+    const us = await User.findOne({ where: { id:id } });
+
+    console.log(us)
+    res.json({ message: 'Coins added successfully '+ us });
   } catch (error) {
     console.error('Database error:', error);  
     res.status(500).json({ message: 'Internal server error' });
