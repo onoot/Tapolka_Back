@@ -23,6 +23,66 @@ export const parseTelegramData = (initData) => {
   }
 };
 
+
+// export const login = async (req, res) => {
+//   try {
+//     const { query_id, user, auth_date, hash } = req.body;
+
+//     // Валидация данных от Telegram
+//     if (!validateTelegramData({ query_id, user, auth_date, hash }, SECRET_BOT_TOKEN)) {
+//       return res.status(401).json({ message: 'Invalid Telegram data' });
+//     }
+//     // Проверка или создание пользователя в базе данных
+//     let existingUser = await User.findOne({
+//       where: { telegramId: user.id },
+//       include: { model: Role, as: 'role', attributes: ['name'] },
+//     });
+
+//     if (!existingUser) {
+//       existingUser = await User.create({
+//         telegramId: user.id,
+//         firstName: user.first_name || '',
+//         lastName: user.last_name || '',
+//         username: user.username || '',
+//         money: 0,
+//         totalMoney: 0,
+//         profit: 0,
+//         energy: 1000, 
+//         rank: 0,
+//         benefit: 0,
+//         roleId: 4,
+//       });
+//     }
+
+//     // Создание JWT токена
+//     const token = jwt.sign(
+//       { userId: existingUser.id, username: existingUser.username },
+//       JWT_SECRET,
+//       { expiresIn: '1h' }
+//     );
+
+//     // Формирование объекта ответа
+//     return res.json({
+//       token,
+//       id: existingUser.id,
+//       telegramId: existingUser.telegramId,
+//       name: existingUser.firstName || existingUser.name ,
+//       role: existingUser.role.name || 'User',
+//       money: existingUser.money,
+//       totalMoney: existingUser.totalMoney,
+//       profit: existingUser.profit,
+//       energy: existingUser.energy,
+//       rank: existingUser.rank,
+//       benefit: existingUser.benefit,
+//     });
+//   } catch (e) {
+//     console.error(e);
+//     return res.status(500).json({ message: 'Internal server error' });
+//   }
+// };
+
+// Функция для проверки и верификации JWT токена
+
 export const login = async (req, res) => {
   try {
     const { query_id, user, auth_date, hash } = req.body;
@@ -31,6 +91,7 @@ export const login = async (req, res) => {
     if (!validateTelegramData({ query_id, user, auth_date, hash }, SECRET_BOT_TOKEN)) {
       return res.status(401).json({ message: 'Invalid Telegram data' });
     }
+
     // Проверка или создание пользователя в базе данных
     let existingUser = await User.findOne({
       where: { telegramId: user.id },
@@ -50,8 +111,12 @@ export const login = async (req, res) => {
         rank: 0,
         benefit: 0,
         roleId: 4,
+        lastEnergyUpdate: new Date(),
       });
     }
+
+    // Обновление энергии пользователя перед отправкой данных клиенту
+    const updatedEnergy = await checkAndRegenerateEnergy(existingUser);
 
     // Создание JWT токена
     const token = jwt.sign(
@@ -65,12 +130,12 @@ export const login = async (req, res) => {
       token,
       id: existingUser.id,
       telegramId: existingUser.telegramId,
-      name: existingUser.firstName || existingUser.name ,
+      name: existingUser.firstName || existingUser.name,
       role: existingUser.role.name || 'User',
       money: existingUser.money,
       totalMoney: existingUser.totalMoney,
       profit: existingUser.profit,
-      energy: existingUser.energy,
+      energy: updatedEnergy,
       rank: existingUser.rank,
       benefit: existingUser.benefit,
     });
@@ -80,7 +145,6 @@ export const login = async (req, res) => {
   }
 };
 
-// Функция для проверки и верификации JWT токена
 export const VerifJWT = (token) => {
   if (!token) return false;
 
@@ -92,6 +156,7 @@ export const VerifJWT = (token) => {
     return false;
   }
 };
+
 // Универсальная функция для проверки и регенерации энергии
 const checkAndRegenerateEnergy = async (user) => {
   const now = new Date();
