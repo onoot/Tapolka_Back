@@ -39,10 +39,10 @@ app.use((err, req, res, next) => {
 });
 
 // SSL-конфигурация
-// const sslOptions = {
-//     key: fs.readFileSync(' /etc/letsencrypt/live/app.tongaroo.fun/privkey.pem'),   
-//     cert: fs.readFileSync('/etc/letsencrypt/live/app.tongaroo.fun/fullchain.pem'),  
-// };
+const sslOptions = {
+    key: fs.readFileSync(' /etc/letsencrypt/live/app.tongaroo.fun/privkey.pem'),   
+    cert: fs.readFileSync('/etc/letsencrypt/live/app.tongaroo.fun/fullchain.pem'),  
+};
 
 // Обработка команды /start для Telegram бота
 bot.on('message', async (msg) => {
@@ -76,18 +76,18 @@ app.get('*', (req, res) => {
 
 // Настройка HTTPS-сервера
 const HTTPS_PORT = process.env.HTTPS_PORT || 443;
-// https.createServer(sslOptions, app).listen(HTTPS_PORT, () => {
-//     console.log(`HTTPS Server started on port ${HTTPS_PORT}`);
-// });
+https.createServer(sslOptions, app).listen(HTTPS_PORT, () => {
+    console.log(`HTTPS Server started on port ${HTTPS_PORT}`);
+});
 
 // Настройка HTTP-сервера для перенаправления на HTTPS
 const HTTP_PORT = process.env.HTTP_PORT || 80;
-http.createServer(app).listen(HTTP_PORT, () => {
-    console.log(`HTTP Server started on port ${HTTP_PORT}`);
-});
-// http.createServer((req, res) => {
-//     res.writeHead(301, { Location: `https://${req.headers.host}${req.url}` });
-//     res.end();
-// }).listen(HTTP_PORT, () => {
-//     console.log(`HTTP Server started on port ${HTTP_PORT} and redirecting to HTTPS`);
+// http.createServer(app).listen(HTTP_PORT, () => {
+//     console.log(`HTTP Server started on port ${HTTP_PORT}`);
 // });
+http.createServer((req, res) => {
+    res.writeHead(301, { Location: `https://${req.headers.host}${req.url}` });
+    res.end();
+}).listen(HTTP_PORT, () => {
+    console.log(`HTTP Server started on port ${HTTP_PORT} and redirecting to HTTPS`);
+});
