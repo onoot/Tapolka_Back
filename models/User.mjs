@@ -62,6 +62,26 @@ const User = sequelize.define('User', {
     allowNull: false,
     defaultValue: 0,
   },
+  wallet:{
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  Invited:{
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  referral:{
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  tasks: {
+    type: DataTypes.JSON,
+    allowNull: true,
+  },
+  daily_tasks: {
+    type: DataTypes.JSON,
+    allowNull: true,
+  },
   roleId: {
     type: DataTypes.INTEGER,
     references: {
@@ -69,7 +89,7 @@ const User = sequelize.define('User', {
       key: 'id',
     },
     allowNull: false,
-    defaultValue: 1, 
+    defaultValue: 4, 
   },
 }, {
   tableName: 'users',
