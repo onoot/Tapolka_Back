@@ -69,10 +69,10 @@ bot.on('message', async (msg) => {
 // API маршруты
 app.use('/api', apiRouter);
 
-// Все остальные маршруты отправляют index.html
-app.get('*', (req, res) => {
-    res.sendFile(path.join(buildPath, 'index.html'));
-});
+// // Все остальные маршруты отправляют index.html
+// app.get('*', (req, res) => {
+//     res.sendFile(path.join(buildPath, 'index.html'));
+// });
 
 // Настройка HTTPS-сервера
 const HTTPS_PORT = process.env.HTTPS_PORT || 443;
