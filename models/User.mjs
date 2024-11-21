@@ -74,6 +74,10 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  referl_link:{
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   tasks: {
     type: DataTypes.JSON,
     allowNull: true,

@@ -28,7 +28,7 @@ export function validateTelegramData(initData, SECRET_BOT_TOKEN) {
             .createHmac('sha256', secretKey)
             .update(checkString)
             .digest('hex');
-
+            
         return hash === initData.hash;
     } catch (e) {
         console.error("Error in validation:", e);

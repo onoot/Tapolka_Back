@@ -3,7 +3,9 @@ import jwt from 'jsonwebtoken';
 
 import User from '../models/User.mjs';
 import Role from '../models/Role.mjs';
+import Task from '../models/Task.mjs';
 import { validateTelegramData } from '../meddleware/verificationTG.mjs';
+import { processReferral } from '../meddleware/checkRef.mjs';
 
 dotenv.config();
 
@@ -23,64 +25,6 @@ export const parseTelegramData = (initData) => {
   }
 };
 
-
-// export const login = async (req, res) => {
-//   try {
-//     const { query_id, user, auth_date, hash } = req.body;
-
-//     // Валидация данных от Telegram
-//     if (!validateTelegramData({ query_id, user, auth_date, hash }, SECRET_BOT_TOKEN)) {
-//       return res.status(401).json({ message: 'Invalid Telegram data' });
-//     }
-//     // Проверка или создание пользователя в базе данных
-//     let existingUser = await User.findOne({
-//       where: { telegramId: user.id },
-//       include: { model: Role, as: 'role', attributes: ['name'] },
-//     });
-
-//     if (!existingUser) {
-//       existingUser = await User.create({
-//         telegramId: user.id,
-//         firstName: user.first_name || '',
-//         lastName: user.last_name || '',
-//         username: user.username || '',
-//         money: 0,
-//         totalMoney: 0,
-//         profit: 0,
-//         energy: 1000, 
-//         rank: 0,
-//         benefit: 0,
-//         roleId: 4,
-//       });
-//     }
-
-//     // Создание JWT токена
-//     const token = jwt.sign(
-//       { userId: existingUser.id, username: existingUser.username },
-//       JWT_SECRET,
-//       { expiresIn: '1h' }
-//     );
-
-//     // Формирование объекта ответа
-//     return res.json({
-//       token,
-//       id: existingUser.id,
-//       telegramId: existingUser.telegramId,
-//       name: existingUser.firstName || existingUser.name ,
-//       role: existingUser.role.name || 'User',
-//       money: existingUser.money,
-//       totalMoney: existingUser.totalMoney,
-//       profit: existingUser.profit,
-//       energy: existingUser.energy,
-//       rank: existingUser.rank,
-//       benefit: existingUser.benefit,
-//     });
-//   } catch (e) {
-//     console.error(e);
-//     return res.status(500).json({ message: 'Internal server error' });
-//   }
-// };
-
 // Функция для проверки и верификации JWT токена
 
 export const login = async (req, res) => {
@@ -89,7 +33,7 @@ export const login = async (req, res) => {
 
     // Валидация данных от Telegram
     if (!validateTelegramData({ query_id, user, auth_date, hash }, SECRET_BOT_TOKEN)) {
-      return res.status(401).json({ message: 'Invalid Telegram data' });
+      return res.status(401).json({ message: 'Invalid Telegram data Бляяяy' });
     }
 
     // Проверка или создание пользователя в базе данных
@@ -107,7 +51,7 @@ export const login = async (req, res) => {
         money: 0,
         totalMoney: 0,
         profit: 0,
-        energy: 1000, 
+        energy: 1000,
         rank: 0,
         benefit: 0,
         roleId: 4,
@@ -290,5 +234,164 @@ export const getUserCoins = async (req, res) => {
   } catch (error) {
     console.error('Database error:', error);
     res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+export const generateReferralLink = async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token || !VerifJWT(token)) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  const { id } = req.params;
+
+  try {
+    const user = await User.findOne({ where: { id } });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Генерация ссылки
+    const referralLink = `${process.env.BOT_URL}?ref=${user.telegramId}`;
+    await user.update({ referl_link: referralLink });
+
+    return res.json({ referralLink });
+  } catch (error) {
+    console.error('Error generating referral link:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+export const verifyReferralLink = async (req, res) => {
+  const { ref } = req.query;
+  const { query_id, user, auth_date, hash } = req.body;
+
+  if (!validateTelegramData({ query_id, user, auth_date, hash }, SECRET_BOT_TOKEN)) {
+    return res.status(401).json({ message: 'Invalid Telegram data' });
+  }
+
+  try {
+    const result = await processReferral({ user, ref });
+
+    if (result.success) {
+      return res.json({ message: result.message, user: result.user });
+    } else {
+      return res.status(400).json({ message: result.message });
+    }
+  } catch (error) {
+    console.error('Error verifying referral link:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+export const getFriendList = async (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+
+  if (!token || !VerifJWT(token)) {
+    return res.status(401).json({ message: 'Unauthorized' });
+  }
+
+  const { id } = req.params;
+
+  try {
+    const user = await User.findOne({ where: { telegramId: id } });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (!user.referral || user.referral.length === 0) {
+      return res.json({ friends: [] });
+    }
+
+    const referralIds = user.referral.split(',');
+
+    const friends = await User.findAll({
+      where: { id: referralIds },
+      attributes: ['id', 'firstName', 'benefit', 'rank'],
+    });
+
+    return res.json({ friends });
+  } catch (error) {
+    console.error('Error getting friend list:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+export const getTask = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token || !VerifJWT(token)) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const { id, task } = req.body;
+
+    const user = await User.findOne({ where: { telegramId: id } });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const Tasks = await Task.findAll({ where: { id: task } });
+    if (!Tasks || Tasks.length === 0) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    res.json(Tasks);
+
+    setTimeout(() => addTaskToUser(id, task), 5000);
+  } catch (error) {
+    console.error('Error getting task:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const checkSubscription = async (userIdToCheck, botChannelId) => {
+  
+  try {
+      // Проверяем статус пользователя в канале
+      const chatMember = await bot.getChatMember(botChannelId, userIdToCheck);
+
+      if (chatMember.status === 'member' || chatMember.status === 'administrator' || chatMember.status === 'creator') {
+         return true
+      } else {
+        return false
+      }
+  } catch (error) {
+      console.error('Error checking subscription:', error);
+
+      if (error.response && error.response.body) {
+          const errorCode = error.response.body.error_code;
+
+          if (errorCode === 400) {
+              return 404
+          } else if (errorCode === 403) {
+             return 403
+          } else {
+            return 400
+          }
+      } else {
+          return 500
+      }
+  }
+
+}
+
+// Функция для добавления задачи пользователю
+export const addTaskToUser = async (userId, taskId) => {
+  try {
+    const user = await User.findOne({ where: { telegramId: userId } });
+
+    if (!user) {
+      return false;
+    }
+
+    const currentTasks = user.tasks || [];
+    const updatedTasks = [...currentTasks, { taskId, completedAt: new Date() }];
+
+    await user.update({ tasks: updatedTasks });
+
+    console.log(`Task ${taskId} added to user ${userId}`);
+  } catch (error) {
+    console.error('Error adding task to user:', error);
   }
 };
