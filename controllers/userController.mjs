@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.mjs';
 import Role from '../models/Role.mjs';
 import Task from '../models/Task.mjs';
+import Daily from '../models/Daily.mjs';
 import { validateTelegramData } from '../meddleware/verificationTG.mjs';
 import { processReferral } from '../meddleware/checkRef.mjs';
 
@@ -393,5 +394,32 @@ export const addTaskToUser = async (userId, taskId) => {
     console.log(`Task ${taskId} added to user ${userId}`);
   } catch (error) {
     console.error('Error adding task to user:', error);
+  }
+};
+
+export const getMineItems = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token || !VerifJWT(token)) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const { id } = req.params;
+
+    const user = await User.findOne({ where: { telegramId: id } });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const tasks = await Task.findAll({ where: { id: user.tasks } });
+    if (!tasks || tasks.length === 0) {
+      return res.status(404).json({ message: 'Tasks not found' });
+    }
+
+    res.json(tasks);
+  } catch (error) {
+    console.error('Error getting task list:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };

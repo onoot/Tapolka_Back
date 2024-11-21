@@ -13,7 +13,7 @@ const Task = sequelize.define('Task', {
     allowNull: false,
   },
   type:{
-    type: DataTypes.NUMBER,
+    type: DataTypes.DECIMAL,
     allowNull: false,
   },
   link:{

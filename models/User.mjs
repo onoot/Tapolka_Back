@@ -86,6 +86,10 @@ const User = sequelize.define('User', {
     type: DataTypes.JSON,
     allowNull: true,
   },
+  combo_daily: {
+    type: DataTypes.JSON,
+    allowNull: true,
+  },
   roleId: {
     type: DataTypes.INTEGER,
     references: {

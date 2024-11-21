@@ -9,6 +9,7 @@ import {
     generateReferralLink, 
     verifyReferralLink, 
     getFriendList,
+    getMineItems,
     getTask } from '../controllers/userController.mjs';
 
 const router = express.Router();
@@ -25,6 +26,7 @@ router.get('/generateReferralLink/:id', generateReferralLink);
 router.post('/verifyReferralLink', verifyReferralLink);
 
 router.get('/getFriendList/:id', getFriendList );
+router.get('/getMineItems/:id', getMineItems );
 
 router.post('/getTask', getTask);
 

@@ -15,7 +15,8 @@ export async function syncDatabase() {
     console.log('Connection has been established successfully.');
 
     // Синхронизация всех моделей (создание таблиц, если их еще нет)
-    await sequelize.sync({ alter: true }); // Используйте { alter: true } для обновления структуры таблиц по моделям, если это необходимо
+    await sequelize.sync({ alter: false }); 
+    // Используйте { alter: true } для обновления структуры таблиц по моделям, если это необходимо
     console.log('All models were synchronized successfully.');
   } catch (error) {
     console.error('Unable to connect to the database:', error);
