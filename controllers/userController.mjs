@@ -412,6 +412,7 @@ export const getMineItems = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // sd
     const tasks = await Task.findAll({ where: { id: user.tasks } });
     if (!tasks || tasks.length === 0) {
       return res.status(404).json({ message: 'Tasks not found' });
