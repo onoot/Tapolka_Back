@@ -41,7 +41,7 @@ app.use((err, req, res, next) => {
 
 // // SSL-конфигурация
 const sslOptions = {
-    key: fs.readFileSync(' /etc/letsencrypt/live/app.tongaroo.fun/privkey.pem'),   
+    key: fs.readFileSync('/etc/letsencrypt/live/app.tongaroo.fun/privkey.pem'),   
     cert: fs.readFileSync('/etc/letsencrypt/live/app.tongaroo.fun/fullchain.pem'),  
 };
 // Обработка команды /start для Telegram бота
