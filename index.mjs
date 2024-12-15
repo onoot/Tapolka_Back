@@ -61,13 +61,9 @@ app.use('/api', apiRouter);
 // });
 
 const HTTP_PORT = process.env.HTTP_PORT || 80;
+http.createServer(app).listen(HTTP_PORT, async () => {
+  console.log(`HTTP Server started on port ${HTTP_PORT}`);
 
-http.createServer(app).listen(HTTP_PORT, () => {
-        console.log(`HTTP Server started on port ${HTTP_PORT}`);
-        // Сохраняем информацию о сервере после его запуска
-        const serverAddress = saveServerAddress(HTTP_PORT);
-        if(serverAddress)
-          console.log(`Save address: ${serverAddress}`);
-        else
-          console.log(`Error save address: ${serverAddress}`);
-    });
+  // Сохраняем информацию о сервере после его запуска
+  await saveServerAddress(HTTP_PORT);
+});
