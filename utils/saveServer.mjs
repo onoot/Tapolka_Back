@@ -1,8 +1,22 @@
 import Server from '../models/Server.mjs';
+import os from 'os';
+
+// Функция для получения IP-адреса машины
+function getServerIpAddress() {
+  const interfaces = os.networkInterfaces();
+  for (const iface in interfaces) {
+    for (const alias of interfaces[iface]) {
+      if (alias.family === 'IPv4' && !alias.internal) {
+        return alias.address;
+      }
+    }
+  }
+  return 'localhost'; // Если не удалось найти IP, возвращаем localhost
+}
 
 export async function saveServerAddress(port) {
   try {
-    const serverAddress = `http://${process.env.SERVER_HOST || 'localhost'}:${port}`;
+    const serverAddress = getServerIpAddress();  // Убираем await, так как функция синхронная
     
     // Проверяем, есть ли уже запись с этим адресом
     const existingServer = await Server.findOne({ where: { address: serverAddress } });
@@ -14,13 +28,14 @@ export async function saveServerAddress(port) {
         active: true, // Отметим сервер как активный
       });
 
-      console.log(`Server address saved: ${serverAddress}`);
+      console.log(`Server address saved: ${serverAddress}:${port}`);
     } else {
-      console.log(`Server address already exists: ${serverAddress}`);
+      console.log(`Server address already exists: ${serverAddress}:${port}`);
     }
-    return serverAddress
+    
+    return serverAddress;
   } catch (error) {
     console.error('Error saving server address:', error);
-    return error
+    throw error; // Выбрасываем ошибку дальше
   }
 }
