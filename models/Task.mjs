@@ -2,6 +2,8 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.mjs';
 
+const PORT=process.env.HTTP_PORT || 5000
+
 const Task = sequelize.define('Task', {
   id: {
     type: DataTypes.INTEGER,
