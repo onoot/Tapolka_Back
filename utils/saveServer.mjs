@@ -1,5 +1,6 @@
 import Server from '../models/Server.mjs';
 import os from 'os';
+const Port=process.env.HTTP_PORT || 5000
 
 // Функция для получения IP-адреса машины
 function getServerIpAddress() {
@@ -24,7 +25,7 @@ export async function saveServerAddress(port) {
     if (!existingServer) {
       // Если нет, создаем новый сервер
       await Server.create({
-        address: serverAddress,
+        address: serverAddress+`${Port}`,
         active: true, // Отметим сервер как активный
       });
 
