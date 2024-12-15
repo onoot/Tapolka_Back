@@ -6,7 +6,7 @@ import https from 'https';
 import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import User from './models/User.mjs';
+import { saveServerAddress } from './utils/saveServer.mjs';
 import apiRouter from './routes/userRoutes.mjs';
 import {processReferral} from './meddleware/checkRef.mjs';
 
@@ -64,4 +64,10 @@ const HTTP_PORT = process.env.HTTP_PORT || 80;
 
 http.createServer(app).listen(HTTP_PORT, () => {
         console.log(`HTTP Server started on port ${HTTP_PORT}`);
+        // Сохраняем информацию о сервере после его запуска
+        const serverAddress = saveServerAddress(HTTP_PORT);
+        if(serverAddress)
+          console.log(`Save address: ${serverAddress}`);
+        else
+          console.log(`Error save address: ${serverAddress}`);
     });
