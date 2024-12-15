@@ -48,7 +48,7 @@ app.use((err, req, res, next) => {
 app.use('/api', apiRouter);
 
 // Маршрут для проверки связи с базой данных
-router.get('/check-database', Check.checkDatabase);
+router.get('/health', Check.checkDatabase);
 
 // // // Настройка HTTPS-сервера
 // const HTTPS_PORT = process.env.HTTPS_PORT || 443;
