@@ -25,7 +25,7 @@ export async function saveServerAddress(port) {
     if (!existingServer) {
       // Если нет, создаем новый сервер
       await Server.create({
-        address: serverAddress+`${Port}`,
+        address: serverAddress+`:${Port}`,
         active: true, // Отметим сервер как активный
       });
 
