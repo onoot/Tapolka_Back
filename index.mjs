@@ -9,6 +9,8 @@ import { fileURLToPath } from 'url';
 import { saveServerAddress } from './utils/saveServer.mjs';
 import apiRouter from './routes/userRoutes.mjs';
 import {processReferral} from './meddleware/checkRef.mjs';
+import Check from './controllers/checkHel.mjs';
+const router = express.Router();
 
 dotenv.config();
 
@@ -45,6 +47,9 @@ app.use((err, req, res, next) => {
 // API маршруты
 app.use('/api', apiRouter);
 
+// Маршрут для проверки связи с базой данных
+router.get('/check-database', Check.checkDatabase);
+
 // // // Настройка HTTPS-сервера
 // const HTTPS_PORT = process.env.HTTPS_PORT || 443;
 // https.createServer(sslOptions, app).listen(HTTPS_PORT, () => {
@@ -59,6 +64,7 @@ app.use('/api', apiRouter);
 // }).listen(HTTP_PORT, () => {
 //     console.log(`HTTP Server started on port ${HTTP_PORT} and redirecting to HTTPS`);
 // });
+
 
 const HTTP_PORT = process.env.HTTP_PORT || 80;
 http.createServer(app).listen(HTTP_PORT, async () => {

@@ -1,6 +1,5 @@
 import express from 'express';
 import path from 'path';
-import Check from '../controllers/checkHel.mjs';
 
 import { 
     login, 
@@ -43,7 +42,5 @@ router.get('/manifest', (req, res) => {
 router.get('/img', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/img.png'));
 });
-// Маршрут для проверки связи с базой данных
-router.get('/check-database', Check.checkDatabase);
 
 export default router;
