@@ -23,7 +23,7 @@ app.use((err, req, res, next) => {
 });
 
 // API маршруты
-app.use('/api', apiRouter);
+app.use('*', apiRouter);
 
 // Маршрут для проверки связи с базой данных
 app.get('/health', Check.checkDatabase);
