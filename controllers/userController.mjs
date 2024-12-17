@@ -440,7 +440,8 @@ export const getMineItems = async (req, res) => {
   }
 };
 
-export const getDailyItems = async (req, res) => {
+
+export const buyCard = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
 
@@ -448,20 +449,40 @@ export const getDailyItems = async (req, res) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    const { id } = req.params;
+    const { id } = req.params; // ID пользователя
+    const { dayliy } = req.body; // ID карточки
 
-    const user = await User.findOne({ where: { telegramId: id } });
+    // Получение пользователя
+    const user = await User.findOne({ where: { id: id } });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const tasks = await DailyCombo.findAll();
-    if (!tasks || tasks.length === 0) {
-      return res.status(404).json({ message: 'Tasks not found' });
+    // Получение карточки
+    const dailyCard = await Daily.findOne({ where: { id: dayliy } });
+    if (!dailyCard) {
+      return res.status(404).json({ message: 'Daily card not found' });
     }
-    res.json(tasks);
+
+    // Проверка баланса пользователя
+    if (user.money < dailyCard.price) {
+      return res.status(400).json({ message: 'Insufficient balance' });
+    }
+
+    // Обновление daily_tasks
+    const currentDailyTasks = user.daily_tasks || [];
+    const updatedDailyTasks = [...currentDailyTasks, dailyCard];
+
+    // Вычитание стоимости карточки из баланса
+    user.money -= dailyCard.price;
+
+    // Сохранение обновлений
+    user.daily_tasks = updatedDailyTasks;
+    await user.save();
+
+    res.status(200).json({ message: 'Card purchased successfully', user });
   } catch (error) {
-    console.error('Error getting task list:', error);
+    console.error('Error processing card purchase:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };

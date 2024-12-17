@@ -11,7 +11,9 @@ import {
     getFriendList,
     getMineItems,
     getDailyItems,
-    getTask } from '../controllers/userController.mjs';
+    getTask,
+    buyCard
+} from '../controllers/userController.mjs';
 
 const router = express.Router();
 
@@ -29,6 +31,9 @@ router.post('/verifyReferralLink', verifyReferralLink);
 
 router.get('/getFriendList/:id', getFriendList );
 router.get('/getMineItems/:id', getMineItems );
+
+//покупка карточек
+router.post('/buyCard', buyCard);
 
 //получение дейли комбо и награды за неё
 router.get('/getDailyItems/', getDailyItems );
