@@ -52,12 +52,12 @@ export const login = async (req, res) => {
         money: 0,
         totalMoney: 0,
         profit: 0,
-        energy: 1000,
+        energy: 500,
         rank: 0,
         benefit: 0,
         roleId: 4,
-        key: 0,
         lastEnergyUpdate: new Date(),
+        key: 0,
       });
     }
 
@@ -85,6 +85,7 @@ export const login = async (req, res) => {
       rank: existingUser.rank,
       benefit: existingUser.benefit,
       key: existingUser.key,
+      existingUser: existingUser.toJSON(),
     });
   } catch (e) {
     console.error(e);
