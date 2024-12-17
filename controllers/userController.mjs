@@ -302,7 +302,7 @@ export const getFriendList = async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     if (!user.referral || user.referral.length === 0) {
-      console.log("Пользвоатели: ",user.referral);
+      console.log("Пользвоатели: ",user);
       return res.json({ friends: [] });
     }
 
