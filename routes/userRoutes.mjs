@@ -33,7 +33,7 @@ router.get('/getFriendList/:id', getFriendList );
 router.get('/getMineItems/:id', getMineItems );
 
 //покупка карточек
-router.post('/buyCard', buyCard);
+router.post('/buyCard/:id', buyCard);
 
 //получение дейли комбо и награды за неё
 router.get('/getDailyItems/', getDailyItems );
