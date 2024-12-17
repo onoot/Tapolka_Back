@@ -57,6 +57,11 @@ const User = sequelize.define('User', {
     allowNull: false,
     defaultValue: 0,
   },
+  key: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
   benefit: {
     type: DataTypes.INTEGER,
     allowNull: false,
