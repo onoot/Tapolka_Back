@@ -301,12 +301,12 @@ export const getFriendList = async (req, res) => {
     const user = await User.findOne({ where: { id } });
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    if (!user.referral || user.referral.length === 0) {
+    if (!user.Invited || user.Invited.length === 0) {
       console.log("Пользвоатели: ",user);
       return res.json({ friends: [] });
     }
 
-    const referralIds = user.referral.split(',');
+    const referralIds = user.Invited.split(',');
 
     const friends = await User.findAll({
       where: { id: referralIds },
