@@ -253,7 +253,7 @@ export const generateReferralLink = async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     // Генерация ссылки
-    const referralLink = `${process.env.BOT_URL}?ref=${user.telegramId}`;
+    const referralLink = `${process.env.BOT_URL}?start=${user.telegramId}`;
     await user.update({ referl_link: referralLink });
 
     return res.json({ referralLink });
