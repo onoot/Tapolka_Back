@@ -309,7 +309,7 @@ export const getFriendList = async (req, res) => {
     const referralIds = user.Invited.split(',');
 
     const friends = await User.findAll({
-      where: { id: referralIds },
+      where: { telegramId: referralIds },
       attributes: ['id', 'firstName', 'benefit', 'rank'],
     });
 
