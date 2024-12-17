@@ -85,7 +85,7 @@ export const login = async (req, res) => {
       rank: existingUser.rank,
       benefit: existingUser.benefit,
       key: existingUser.key,
-      existingUser: existingUser.toJSON(),
+      // existingUser: existingUser.toJSON(),
     });
   } catch (e) {
     console.error(e);
@@ -302,6 +302,7 @@ export const getFriendList = async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     if (!user.referral || user.referral.length === 0) {
+      console.log("Пользвоатели: ",user.referral);
       return res.json({ friends: [] });
     }
 
