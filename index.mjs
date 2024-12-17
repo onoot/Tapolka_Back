@@ -26,7 +26,7 @@ app.use((err, req, res, next) => {
 app.get('/health', Check.checkDatabase);
 
 // API маршруты
-app.use('*', apiRouter);
+app.use('/', apiRouter);
 
 const HTTP_PORT = process.env.HTTP_PORT || 80;
 http.createServer(app).listen(HTTP_PORT, async () => {
