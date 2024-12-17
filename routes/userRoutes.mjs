@@ -16,6 +16,10 @@ import {
 const router = express.Router();
 
 router.post('/login', login);
+router.get('/login', (req, res) => {
+    res.sendmessage('Login page');
+});
+
 router.get('/coins/:id', getUserCoins);
 router.post('/add-coins/:id', addCoins);
 router.get('/check-energy/:id', checkEnergy);
