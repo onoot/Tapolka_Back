@@ -468,6 +468,7 @@ export const getDailyItems = async (req, res) => {
 
 export const buyCard = async (req, res) => {
   try {
+    console.log(req.body);
     const token = req.headers.authorization?.split(' ')[1];
 
     if (!token || !VerifJWT(token)) {
@@ -480,12 +481,14 @@ export const buyCard = async (req, res) => {
     // Получение пользователя
     const user = await User.findOne({ where: { id: id } });
     if (!user) {
+      console.log('User not found');
       return res.status(404).json({ message: 'User not found' });
     }
 
     // Получение карточки
     const dailyCard = await Daily.findOne({ where: { id: dayliy } });
     if (!dailyCard) {
+      console.log('Daily card not found');
       return res.status(404).json({ message: 'Daily card not found' });
     }
 
