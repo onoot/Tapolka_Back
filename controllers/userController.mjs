@@ -56,6 +56,7 @@ export const login = async (req, res) => {
         rank: 0,
         benefit: 0,
         roleId: 4,
+        key: 0,
         lastEnergyUpdate: new Date(),
       });
     }
@@ -83,6 +84,7 @@ export const login = async (req, res) => {
       energy: updatedEnergy,
       rank: existingUser.rank,
       benefit: existingUser.benefit,
+      key: existingUser.key,
     });
   } catch (e) {
     console.error(e);
