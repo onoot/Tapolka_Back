@@ -22,11 +22,11 @@ app.use((err, req, res, next) => {
     }
 });
 
-// API маршруты
-app.use('*', apiRouter);
-
 // Маршрут для проверки связи с базой данных
 app.get('/health', Check.checkDatabase);
+
+// API маршруты
+app.use('*', apiRouter);
 
 const HTTP_PORT = process.env.HTTP_PORT || 80;
 http.createServer(app).listen(HTTP_PORT, async () => {
