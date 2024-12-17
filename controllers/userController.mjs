@@ -416,7 +416,7 @@ export const getMineItems = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const tasks = await Daily.findAll({ where: { id: user.tasks } });
+    const tasks = await Daily.findAll();
     if (!tasks || tasks.length === 0) {
       return res.status(404).json({ message: 'Tasks not found' });
     }
