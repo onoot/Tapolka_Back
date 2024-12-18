@@ -291,7 +291,7 @@ export const getFriendList = async (req, res) => {
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     if (!user.Invited || user.Invited.length === 0) {
-      console.log("Пользвоатели: ",user);
+      console.log("Пользвоатели: ", user);
       return res.json({ friends: [] });
     }
 
@@ -340,32 +340,32 @@ export const getTask = async (req, res) => {
 };
 
 export const checkSubscription = async (userIdToCheck, botChannelId) => {
-  
+
   try {
-      // Проверяем статус пользователя в канале
-      const chatMember = await bot.getChatMember(botChannelId, userIdToCheck);
+    // Проверяем статус пользователя в канале
+    const chatMember = await bot.getChatMember(botChannelId, userIdToCheck);
 
-      if (chatMember.status === 'member' || chatMember.status === 'administrator' || chatMember.status === 'creator') {
-         return true
-      } else {
-        return false
-      }
+    if (chatMember.status === 'member' || chatMember.status === 'administrator' || chatMember.status === 'creator') {
+      return true
+    } else {
+      return false
+    }
   } catch (error) {
-      console.error('Error checking subscription:', error);
+    console.error('Error checking subscription:', error);
 
-      if (error.response && error.response.body) {
-          const errorCode = error.response.body.error_code;
+    if (error.response && error.response.body) {
+      const errorCode = error.response.body.error_code;
 
-          if (errorCode === 400) {
-              return 404
-          } else if (errorCode === 403) {
-             return 403
-          } else {
-            return 400
-          }
+      if (errorCode === 400) {
+        return 404
+      } else if (errorCode === 403) {
+        return 403
       } else {
-          return 500
+        return 400
       }
+    } else {
+      return 500
+    }
   }
 
 }
@@ -407,7 +407,6 @@ export const getMineItems = async (req, res) => {
     if (!tasks || tasks.length === 0) {
       return res.status(404).json({ message: 'Tasks not found' });
     }
-    console.log(tasks?.dataValues)
 
     // Получение пользователя по telegramId
     const user = await User.findOne({ where: { telegramId: id } });
@@ -470,7 +469,6 @@ export const getDailyItems = async (req, res) => {
   }
 };
 
-
 export const buyCard = async (req, res) => {
   try {
     console.log(req.body);
@@ -499,15 +497,24 @@ export const buyCard = async (req, res) => {
       return res.status(404).json({ message: 'Daily card not found' });
     }
 
-    // Проверка баланса пользователя
-    if (user.money < dailyCard.price) {
-      console.log(user.money, dailyCard.price);
-      return res.status(400).json({ message: 'Insufficient balance' });
-    }
-
     // Проверяем, есть ли задача уже в списке
     const currentDailyTasks = user.daily_tasks || [];
     let taskFound = currentDailyTasks.find((task) => task.id === dayliy);
+
+    const currentLevel = taskFound ? taskFound.levels : 0;
+    const targetLevel = currentLevel + 1;
+
+    // Получаем множитель из карточки
+    const multip = dailyCard.multip || 1;
+
+    // Рассчитываем итоговую стоимость
+    const totalPrice = dailyCard.price * Math.pow(multip, targetLevel - 1);
+
+    // Проверка баланса пользователя
+    if (user.money < totalPrice) {
+      console.log('Insufficient balance:', user.money, totalPrice);
+      return res.status(400).json({ message: 'Insufficient balance' });
+    }
 
     if (!taskFound) {
       // Если задачи нет, добавляем с `levels: 1`
@@ -515,19 +522,24 @@ export const buyCard = async (req, res) => {
       currentDailyTasks.push(taskFound);
     } else {
       // Если задача есть, увеличиваем `levels`
-      taskFound.levels += 1;
+      taskFound.levels = targetLevel;
     }
 
     // Обновляем поле daily_tasks
     user.daily_tasks = currentDailyTasks;
 
     // Вычитание стоимости карточки из баланса
-    user.money -= dailyCard.price;
+    user.money -= totalPrice;
 
     // Сохранение обновлений
     await user.save();
 
-    res.status(200).json({ message: 'Card purchased successfully', user });
+    res.status(200).json({
+      message: 'Card purchased successfully',
+      user,
+      totalPrice,
+      targetLevel,
+    });
   } catch (error) {
     console.error('Error processing card purchase:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -538,7 +550,7 @@ export const buyCard = async (req, res) => {
 
 
 export const VerifJWT = (token) => {
-  if (!token) 
+  if (!token)
     return false;
 
   try {
