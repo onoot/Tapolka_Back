@@ -463,6 +463,8 @@ export const getDailyItems = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
 export const buyCard = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -492,7 +494,7 @@ export const buyCard = async (req, res) => {
     const currentDailyTasks = Array.isArray(user.daily_tasks) ? user.daily_tasks : [];
 
     // Ищем задачу в массиве пользователя
-    const taskFound = currentDailyTasks.find((task) => task.id === dayliy);
+    let taskFound = currentDailyTasks.find((task) => task.id === dayliy);
 
     const currentLevel = taskFound ? taskFound.levels : 0;
     const targetLevel = currentLevel + 1;
@@ -513,10 +515,18 @@ export const buyCard = async (req, res) => {
       currentDailyTasks.push({ id: dayliy, levels: 1 });
     } else {
       // Если задача уже существует, увеличиваем её уровень
-      user.daily_tasks = currentDailyTasks.map((task) =>
-        task.id === dayliy ? { ...task, levels: task.levels + 1 } : task
-      );
+      taskFound.levels += 1;
+    
+      // Удаляем старую задачу
+      const updatedTasks = currentDailyTasks.filter((task) => task.id !== dayliy);
+    
+      // Добавляем обновлённую задачу
+      updatedTasks.push(taskFound);
+    
+      // Обновляем массив задач
+      currentDailyTasks.splice(0, currentDailyTasks.length, ...updatedTasks);
     }
+    
 
     // Обновляем задачи пользователя
     user.daily_tasks = currentDailyTasks;
@@ -538,6 +548,7 @@ export const buyCard = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 
 export const VerifJWT = (token) => {
