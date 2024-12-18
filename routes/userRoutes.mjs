@@ -10,7 +10,7 @@ import {
     verifyReferralLink, 
     getFriendList,
     getMineItems,
-    getDailyItems,
+    DailyItems,
     getTask,
     buyCard
 } from '../controllers/userController.mjs';
@@ -36,7 +36,7 @@ router.get('/getMineItems/:id', getMineItems );
 router.post('/buyCard/:id', buyCard);
 
 //получение дейли комбо и награды за неё
-router.get('/getDailyItems/', getDailyItems );
+router.get('/getDailyItems/', DailyItems );
 
 router.post('/getTask', getTask);
 

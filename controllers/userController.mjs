@@ -5,6 +5,7 @@ import User from '../models/User.mjs';
 import Role from '../models/Role.mjs';
 import Task from '../models/Task.mjs';
 import Daily from '../models/Daily.mjs';
+import DailyCombo from '../models/DailyCombo.mjs';
 import { validateTelegramData } from '../meddleware/verificationTG.mjs';
 import { processReferral } from '../meddleware/checkRef.mjs';
 
@@ -438,8 +439,26 @@ export const getMineItems = async (req, res) => {
   }
 };
 
+// Функция для проверки карточки
+const isValidCard = async (cardId, cardLevel) => {
+  // Получаем текущую дату в формате Unix метки (в миллисекундах)
+  const currentDate = Date.now();
 
-export const getDailyItems = async (req, res) => {
+  // Находим карточку по id и уровню
+  const card = await  DailyCombo.findOne({ where: { id: cardId, level: cardLevel } });
+
+  if (!card) {
+    console.log(`Карточка с id ${cardId} и уровнем ${cardLevel} не найдена.`);
+    return false; // Если карточка не найдена, возвращаем false
+  }
+
+  // Получаем дату окончания акции для карточки
+  const expirationDate = card.expirationDate; // Предполагаем, что в карточке есть поле expirationDate с меткой времени
+
+  // Если дата окончания карточки больше текущей даты, то карточка действительна
+  return expirationDate > currentDate;
+};
+export const DailyItems = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
 
@@ -449,21 +468,40 @@ export const getDailyItems = async (req, res) => {
 
     const { id } = req.params;
 
+    // Получаем пользователя по ID
     const user = await User.findOne({ where: { telegramId: id } });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Получаем все карточки (задачи) для текущего пользователя
     const tasks = await DailyCombo.findAll();
     if (!tasks || tasks.length === 0) {
       return res.status(404).json({ message: 'Tasks not found' });
     }
-    res.json(tasks);
+
+    // Проходим по каждой карточке и проверяем её валидность
+    const validTasks = [];
+    for (const task of tasks) {
+      const isValid = await isValidCard(task.id, task.level); // Асинхронная проверка
+      if (isValid) {
+        validTasks.push(task);
+      }
+    }
+
+    // Если валидных карточек меньше, чем в базе, возвращаем ошибку
+    if (validTasks.length !== tasks.length) {
+      return res.status(400).json({ message: 'Some tasks are expired or do not match the current date.' });
+    }
+
+    // Если все карточки валидны, возвращаем их
+    res.json(validTasks);
   } catch (error) {
     console.error('Error getting task list:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 export const buyCard = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -511,6 +549,14 @@ export const buyCard = async (req, res) => {
       return res.status(400).json({ message: 'Insufficient balance' });
     }
 
+    // Проверяем актуальность карточки перед покупкой
+    const cardValidity = await isValidCard(dailyCard.id, currentLevel);
+
+    if (!cardValidity) {
+      return res.status(400).json({ message: 'Card has expired or is not valid', valid: false });
+    }
+
+    // Если карточка действительна, выполняем покупку
     if (!taskFound) {
       // Если задачи нет, добавляем новую
       currentDailyTasks.push({ id: dayliy, levels: 1 });
@@ -537,12 +583,14 @@ export const buyCard = async (req, res) => {
       user,
       totalPrice,
       targetLevel,
+      validCard: cardValidity, 
     });
   } catch (error) {
     console.error('Error processing card purchase:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 
 export const VerifJWT = (token) => {
@@ -577,3 +625,87 @@ export const refreshToken = (req, res) => {
     res.status(403).json({ message: 'Invalid refresh token' });
   }
 };
+
+
+
+
+
+// export const buyCard = async (req, res) => {
+//   try {
+//     const token = req.headers.authorization?.split(' ')[1];
+
+//     if (!token) {
+//       return res.status(401).json({ message: 'No token' });
+//     } else if (!VerifJWT(token)) {
+//       return res.status(401).json({ message: 'Unauthorized' });
+//     }
+
+//     const { id } = req.params; // ID пользователя
+//     const { dayliy } = req.body; // ID карточки
+
+//     // Получение пользователя
+//     const user = await User.findOne({ where: { id } });
+//     if (!user) {
+//       return res.status(404).json({ message: 'User not found' });
+//     }
+
+//     // Проверяем и преобразуем daily_tasks
+//     const currentDailyTasks = Array.isArray(user.daily_tasks)
+//       ? user.daily_tasks
+//       : JSON.parse(user.daily_tasks || '[]');
+
+//     // Получение карточки
+//     const dailyCard = await Daily.findOne({ where: { id: dayliy } });
+//     if (!dailyCard) {
+//       return res.status(404).json({ message: 'Daily card not found' });
+//     }
+
+//     // Ищем задачу
+//     let taskFound = currentDailyTasks.find((task) => task.id === dayliy);
+
+//     const currentLevel = taskFound ? taskFound.levels : 0;
+//     const targetLevel = currentLevel + 1;
+
+//     // Получаем множитель из карточки
+//     const multip = dailyCard.multip || 1;
+
+//     // Рассчитываем итоговую стоимость
+//     const totalPrice = dailyCard.price * Math.pow(multip, targetLevel - 1);
+
+//     // Проверка баланса пользователя
+//     if (user.money < totalPrice) {
+//       return res.status(400).json({ message: 'Insufficient balance' });
+//     }
+
+//     if (!taskFound) {
+//       // Если задачи нет, добавляем новую
+//       currentDailyTasks.push({ id: dayliy, levels: 1 });
+//     } else {
+//       // Если задача уже существует, обновляем массив
+//       currentDailyTasks.forEach((task) => {
+//         if (task.id === dayliy) {
+//           task.levels += 1; // Обновляем уровень
+//         }
+//       });
+//     }
+
+//     // Обновляем задачи пользователя
+//     user.daily_tasks = JSON.stringify(currentDailyTasks);
+
+//     // Вычитание стоимости из баланса
+//     user.money -= totalPrice;
+
+//     // Сохранение обновленного пользователя
+//     await user.save();
+
+//     res.status(200).json({
+//       message: 'Card purchased successfully',
+//       user,
+//       totalPrice,
+//       targetLevel,
+//     });
+//   } catch (error) {
+//     console.error('Error processing card purchase:', error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// };

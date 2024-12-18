@@ -42,7 +42,7 @@ const DailyCombo = sequelize.define('DailyCombo', {
         allowNull: true,
     },
 }, {
-    tableName: 'combo',
+    tableName: 'DailyCombo',
 });
 
 export default DailyCombo;
