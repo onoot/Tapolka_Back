@@ -516,6 +516,7 @@ export const buyCard = async (req, res) => {
     } else {
       // Если задача уже существует, увеличиваем её уровень
       taskFound.levels += 1;
+      currentDailyTasks[currentDailyTasks.indexOf(taskFound)] = taskFound;
     }
 
     // Обновляем задачи пользователя
