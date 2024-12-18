@@ -12,6 +12,7 @@ dotenv.config();
 
 const SECRET_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const { JWT_SECRET } = process.env;
+const { JWT_REFRESH_SECRET } = process.env;
 
 export const validateTelegramInitData = (initData) => {
   return initData && typeof initData === 'string';
@@ -90,19 +91,6 @@ export const login = async (req, res) => {
   } catch (e) {
     console.error(e);
     return res.status(500).json({ message: 'Internal server error' });
-  }
-};
-
-export const VerifJWT = (token) => {
-  if (!token) 
-    return false;
-
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    return decoded;
-  } catch (err) {
-    console.error('JWT verification failed:', err);
-    return false;
   }
 };
 
@@ -497,6 +485,7 @@ export const buyCard = async (req, res) => {
 
     // Проверка баланса пользователя
     if (user.money < dailyCard.price) {
+      console.log(user.money, dailyCard.price);
       return res.status(400).json({ message: 'Insufficient balance' });
     }
 
@@ -515,5 +504,40 @@ export const buyCard = async (req, res) => {
   } catch (error) {
     console.error('Error processing card purchase:', error);
     res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+
+export const VerifJWT = (token) => {
+  if (!token) 
+    return false;
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    return decoded;
+  } catch (err) {
+    console.error('JWT verification failed:', err);
+    return false;
+  }
+};
+
+export const refreshToken = (req, res) => {
+  const refreshToken = req.body.refreshToken;
+
+  if (!refreshToken) {
+    return res.status(401).json({ message: 'Refresh token not provided' });
+  }
+
+  try {
+    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+
+    // Генерация нового access-токена
+    const newAccessToken = jwt.sign({ id: decoded.id }, JWT_SECRET, { expiresIn: '15m' });
+
+    res.status(200).json({ accessToken: newAccessToken });
+  } catch (error) {
+    console.error('Failed to refresh token:', error);
+    res.status(403).json({ message: 'Invalid refresh token' });
   }
 };
