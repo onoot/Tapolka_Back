@@ -409,17 +409,20 @@ export const getMineItems = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Проверяем прокаченные задачи в user.daily_tasks
+    // Получаем данные о прокачанных задачах
     const upgradedTasks = user.daily_tasks || {};
-    const updatedTasks = tasks.map(task => {
-      const updatedTask = { ...task.dataValues }; // Создаем копию данных задачи
 
-      // Если есть информация о прокачанном уровне, обновляем поле levels
+    console.log('upgradedTasks:', upgradedTasks);
+    // Обновляем поле levels для задач
+    const updatedTasks = tasks.map(task => {
+      const taskCopy = { ...task.dataValues }; // Создаем копию задачи
+
+      // Если есть прокачанный уровень для этой задачи, обновляем поле levels
       if (upgradedTasks[task.id]) {
-        updatedTask.levels = upgradedTasks[task.id];
+        taskCopy.levels = upgradedTasks[task.id];
       }
 
-      return updatedTask;
+      return taskCopy;
     });
 
     res.json(updatedTasks);
