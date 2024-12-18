@@ -515,10 +515,11 @@ export const buyCard = async (req, res) => {
     }
 
     if (!taskFound) {
+      console.log("не существует");
       // Если задачи нет, добавляем новую с уровнем 1
       currentDailyTasks.push({ id: dayliy, levels: 1 });
     } else {
-      console.log(taskFound);
+      console.log("существует");
       // Если задача уже существует, увеличиваем её уровень
       taskFound.levels += 1;
     }
