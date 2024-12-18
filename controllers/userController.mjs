@@ -516,13 +516,13 @@ export const buyCard = async (req, res) => {
     } else {
       console.log('Task found:', taskFound);
       // Если задача уже существует, обновляем её уровень
-      taskFound.dataValues.levels += 1;
+      taskFound.levels += 1;
 
       // Обновляем массив, заменяя старую задачу обновлённой
       const updatedTasks = currentDailyTasks.map((task) =>
-        task.id === dayliy ? { ...task, levels: taskFound.dataValues.levels } : task
+        task.id == dayliy ? { id: dayliy, levels: taskFound.levels } : task
       );
-      user.daily_tasks = updatedTasks; // Обновляем ссылку на массив
+      user.daily_tasks = updatedTasks; 
     }
 
     // Вычитание стоимости из баланса
