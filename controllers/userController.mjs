@@ -390,7 +390,6 @@ export const addTaskToUser = async (userId, taskId) => {
   }
 };
 
-
 export const getMineItems = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -414,8 +413,10 @@ export const getMineItems = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Получение данных о задачах пользователя
-    const upgradedTasks = user.daily_tasks || [];
+    // Преобразование daily_tasks в массив
+    const upgradedTasks = Array.isArray(user.daily_tasks)
+      ? user.daily_tasks
+      : JSON.parse(user.daily_tasks || '[]');
 
     // Обновление задач
     const updatedTasks = tasks.map(task => {
