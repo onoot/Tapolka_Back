@@ -421,6 +421,7 @@ export const getMineItems = async (req, res) => {
 
       // Если у пользователя есть уровень для этой задачи, обновляем поле `levels`
       if (upgradedTasks[task.id] !== undefined) {
+        console.log('upgradedTasks[task.id]', upgradedTasks[task.id])
         taskCopy.levels = upgradedTasks[task.id];
       }
 
