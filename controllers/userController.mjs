@@ -416,25 +416,20 @@ export const getMineItems = async (req, res) => {
 
     // Получение данных о задачах пользователя
     const upgradedTasks = user.daily_tasks || [];
-    console.log('upgradedTasks:', upgradedTasks); // Для отладки
 
     // Обновление задач
     const updatedTasks = tasks.map(task => {
       const taskCopy = { ...task.dataValues }; // Создаем копию задачи
 
-      // Ищем объект из upgradedTasks с тем же id
       const upgradedTask = upgradedTasks.find(ut => ut.id === task.id);
 
-      // Если нашли, обновляем поле `levels`
       if (upgradedTask) {
-        console.log(`Обновляем задачу с id: ${task.id}, уровень: ${upgradedTask.levels}`);
         taskCopy.levels = upgradedTask.levels;
       }
 
       return taskCopy;
     });
 
-    // Отправляем обновленный массив
     res.json(updatedTasks);
   } catch (error) {
     console.error('Error getting task list:', error);
@@ -515,17 +510,16 @@ export const buyCard = async (req, res) => {
     }
 
     if (!taskFound) {
-      console.log("не существует");
       // Если задачи нет, добавляем новую с уровнем 1
       currentDailyTasks.push({ id: dayliy, levels: 1 });
+
     } else {
-      console.log("существует");
       // Если задача уже существует, увеличиваем её уровень
-      taskFound.levels += 1;
+      taskFound?.levels += 1;
+      user.daily_tasks = taskFound;
     }
 
     // Обновляем задачи пользователя
-    user.daily_tasks = currentDailyTasks;
 
     // Вычитание стоимости из баланса
     user.money -= totalPrice;
