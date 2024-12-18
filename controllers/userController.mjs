@@ -463,7 +463,6 @@ export const getDailyItems = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
 export const buyCard = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -512,14 +511,13 @@ export const buyCard = async (req, res) => {
     if (!taskFound) {
       // Если задачи нет, добавляем новую с уровнем 1
       currentDailyTasks.push({ id: dayliy, levels: 1 });
-
     } else {
       // Если задача уже существует, увеличиваем её уровень
       taskFound.levels += 1;
-      user.daily_tasks = taskFound;
     }
 
     // Обновляем задачи пользователя
+    user.daily_tasks = currentDailyTasks;
 
     // Вычитание стоимости из баланса
     user.money -= totalPrice;
@@ -538,6 +536,7 @@ export const buyCard = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 
 
