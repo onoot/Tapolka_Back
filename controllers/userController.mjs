@@ -471,7 +471,6 @@ export const getDailyItems = async (req, res) => {
 
 export const buyCard = async (req, res) => {
   try {
-    console.log(req.body);
     const token = req.headers.authorization?.split(' ')[1];
 
     if (!token) {
@@ -497,8 +496,10 @@ export const buyCard = async (req, res) => {
       return res.status(404).json({ message: 'Daily card not found' });
     }
 
-    // Проверяем, есть ли задача уже в списке
+    // Получаем текущие задачи пользователя
     const currentDailyTasks = user.daily_tasks || [];
+
+    // Ищем задачу в массиве пользователя
     let taskFound = currentDailyTasks.find((task) => task.id === dayliy);
 
     const currentLevel = taskFound ? taskFound.levels : 0;
@@ -517,21 +518,21 @@ export const buyCard = async (req, res) => {
     }
 
     if (!taskFound) {
-      // Если задачи нет, добавляем с `levels: 1`
-      taskFound = { id: dayliy, levels: 1 };
-      currentDailyTasks.push(taskFound);
+      // Если задачи нет, добавляем новую с уровнем 1
+      currentDailyTasks.push({ id: dayliy, levels: 1 });
     } else {
-      // Если задача есть, увеличиваем `levels`
-      taskFound.levels = targetLevel;
+      // Если задача уже существует, увеличиваем её уровень
+      taskFound.levels += 1;
     }
 
-    // Обновляем поле daily_tasks
+    // Обновляем задачи пользователя
     user.daily_tasks = currentDailyTasks;
 
-    // Вычитание стоимости карточки из баланса
+    // Вычитание стоимости из баланса
     user.money -= totalPrice;
+    user.levels += 1;
 
-    // Сохранение обновлений
+    // Сохранение обновленного пользователя
     await user.save();
 
     res.status(200).json({
@@ -545,6 +546,7 @@ export const buyCard = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 
 
