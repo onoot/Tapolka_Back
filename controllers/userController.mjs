@@ -389,6 +389,8 @@ export const addTaskToUser = async (userId, taskId) => {
     console.error('Error adding task to user:', error);
   }
 };
+
+
 export const getMineItems = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -405,6 +407,7 @@ export const getMineItems = async (req, res) => {
     if (!tasks || tasks.length === 0) {
       return res.status(404).json({ message: 'Tasks not found' });
     }
+    console.log(tasks?.dataValues)
 
     // Получение пользователя по telegramId
     const user = await User.findOne({ where: { telegramId: id } });

@@ -35,6 +35,11 @@ const Daily = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    multip: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 2,
+    },
     levels: {
       type: DataTypes.JSON,
       allowNull: false,
