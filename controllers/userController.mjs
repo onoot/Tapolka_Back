@@ -413,17 +413,20 @@ export const getMineItems = async (req, res) => {
     }
 
     // Получение данных о задачах пользователя
-    const upgradedTasks = user.daily_tasks || {};
+    const upgradedTasks = user.daily_tasks || [];
+    console.log('upgradedTasks:', upgradedTasks); // Для отладки
 
     // Обновление задач
     const updatedTasks = tasks.map(task => {
       const taskCopy = { ...task.dataValues }; // Создаем копию задачи
-      console.log('upgradedTa', upgradedTasks)
 
-      // Если у пользователя есть уровень для этой задачи, обновляем поле `levels`
-      if (upgradedTasks[task.id] !== undefined) {
-        console.log('upgradedTasks[task.id]', upgradedTasks[task.id])
-        taskCopy.levels = upgradedTasks[task.id];
+      // Ищем объект из upgradedTasks с тем же id
+      const upgradedTask = upgradedTasks.find(ut => ut.id === task.id);
+
+      // Если нашли, обновляем поле `levels`
+      if (upgradedTask) {
+        console.log(`Обновляем задачу с id: ${task.id}, уровень: ${upgradedTask.levels}`);
+        taskCopy.levels = upgradedTask.levels;
       }
 
       return taskCopy;
