@@ -94,7 +94,8 @@ export const login = async (req, res) => {
 };
 
 export const VerifJWT = (token) => {
-  if (!token) return false;
+  if (!token) 
+    return false;
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
@@ -471,7 +472,9 @@ export const buyCard = async (req, res) => {
     console.log(req.body);
     const token = req.headers.authorization?.split(' ')[1];
 
-    if (!token || !VerifJWT(token)) {
+    if (!token) {
+      return res.status(401).json({ message: 'No token' });
+    }else if (!VerifJWT(token)) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
