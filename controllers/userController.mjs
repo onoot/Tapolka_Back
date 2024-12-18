@@ -411,11 +411,12 @@ export const getMineItems = async (req, res) => {
 
     // Получаем данные о прокачанных задачах
     const upgradedTasks = user.daily_tasks || {};
+    console.log(tasks)
 
-    console.log('upgradedTasks:', upgradedTasks);
     // Обновляем поле levels для задач
     const updatedTasks = tasks.map(task => {
       const taskCopy = { ...task.dataValues }; // Создаем копию задачи
+      console.log(taskCopy)
 
       // Если есть прокачанный уровень для этой задачи, обновляем поле levels
       if (upgradedTasks[task.id]) {
