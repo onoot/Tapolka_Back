@@ -389,7 +389,6 @@ export const addTaskToUser = async (userId, taskId) => {
     console.error('Error adding task to user:', error);
   }
 };
-
 export const getMineItems = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -413,22 +412,22 @@ export const getMineItems = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Проверка наличия данных о прокачанных задачах
+    // Получение данных о задачах пользователя
     const upgradedTasks = user.daily_tasks || {};
 
-    // Обновление задач: добавление уровня, если он существует у пользователя
+    // Обновление задач
     const updatedTasks = tasks.map(task => {
       const taskCopy = { ...task.dataValues }; // Создаем копию задачи
 
       // Если у пользователя есть уровень для этой задачи, обновляем поле `levels`
-      if (upgradedTasks[task.id]) {
+      if (upgradedTasks[task.id] !== undefined) {
         taskCopy.levels = upgradedTasks[task.id];
       }
 
       return taskCopy;
     });
 
-    // Возвращаем обновленные задачи
+    // Отправляем обновленный массив
     res.json(updatedTasks);
   } catch (error) {
     console.error('Error getting task list:', error);
