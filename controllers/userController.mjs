@@ -418,7 +418,7 @@ export const getMineItems = async (req, res) => {
     // Обновление задач
     const updatedTasks = tasks.map(task => {
       const taskCopy = { ...task.dataValues }; // Создаем копию задачи
-      console.log('upgradedTa', upgradedTasks[task.id])
+      console.log('upgradedTa', upgradedTasks)
 
       // Если у пользователя есть уровень для этой задачи, обновляем поле `levels`
       if (upgradedTasks[task.id] !== undefined) {
