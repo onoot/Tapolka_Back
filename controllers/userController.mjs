@@ -455,6 +455,7 @@ export const getDailyItems = async (req, res) => {
   }
 };
 
+
 export const buyCard = async (req, res) => {
   try {
     console.log(req.body);
@@ -462,7 +463,7 @@ export const buyCard = async (req, res) => {
 
     if (!token) {
       return res.status(401).json({ message: 'No token' });
-    }else if (!VerifJWT(token)) {
+    } else if (!VerifJWT(token)) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
@@ -489,15 +490,26 @@ export const buyCard = async (req, res) => {
       return res.status(400).json({ message: 'Insufficient balance' });
     }
 
-    // Обновление daily_tasks
+    // Проверяем, есть ли задача уже в списке
     const currentDailyTasks = user.daily_tasks || [];
-    const updatedDailyTasks = [...currentDailyTasks, dailyCard];
+    let taskFound = currentDailyTasks.find((task) => task.id === dayliy);
+
+    if (!taskFound) {
+      // Если задачи нет, добавляем с `levels: 1`
+      taskFound = { id: dayliy, levels: 1 };
+      currentDailyTasks.push(taskFound);
+    } else {
+      // Если задача есть, увеличиваем `levels`
+      taskFound.levels += 1;
+    }
+
+    // Обновляем поле daily_tasks
+    user.daily_tasks = currentDailyTasks;
 
     // Вычитание стоимости карточки из баланса
     user.money -= dailyCard.price;
 
     // Сохранение обновлений
-    user.daily_tasks = updatedDailyTasks;
     await user.save();
 
     res.status(200).json({ message: 'Card purchased successfully', user });
@@ -506,6 +518,7 @@ export const buyCard = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 
 
