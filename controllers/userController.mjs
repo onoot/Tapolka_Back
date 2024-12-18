@@ -463,6 +463,8 @@ export const getDailyItems = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
 export const buyCard = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -488,8 +490,8 @@ export const buyCard = async (req, res) => {
       return res.status(404).json({ message: 'Daily card not found' });
     }
 
-    // Получаем текущие задачи пользователя
-    const currentDailyTasks = user.daily_tasks || [];
+    // Получаем текущие задачи пользователя, проверяя их тип
+    const currentDailyTasks = Array.isArray(user.daily_tasks) ? user.daily_tasks : [];
 
     // Ищем задачу в массиве пользователя
     let taskFound = currentDailyTasks.find((task) => task.id === dayliy);
@@ -536,9 +538,6 @@ export const buyCard = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
-
-
 
 
 
