@@ -490,7 +490,7 @@ export const buyCard = async (req, res) => {
       return res.status(404).json({ message: 'Daily card not found' });
     }
 
-    // Получаем текущие задачи пользователя, проверяя их тип
+    // Получаем текущие задачи пользователя
     const currentDailyTasks = Array.isArray(user.daily_tasks) ? user.daily_tasks : [];
 
     // Ищем задачу в массиве пользователя
@@ -511,31 +511,19 @@ export const buyCard = async (req, res) => {
     }
 
     if (!taskFound) {
-      console.log('Задача не найдена. Добавляем новую с уровнем 1.');
+      // Если задачи нет, добавляем новую с уровнем 1
       currentDailyTasks.push({ id: dayliy, levels: 1 });
-      console.log('Текущие задачи после добавления новой:', JSON.stringify(currentDailyTasks));
     } else {
-      console.log('Задача найдена:', JSON.stringify(taskFound));
-      taskFound.levels += 1;
-      console.log('Обновлённый уровень задачи:', JSON.stringify(taskFound));
-    
-      // Удаляем старую задачу
-      const updatedTasks = currentDailyTasks.filter((task) => task.id !== dayliy);
-      console.log('Задачи после удаления старой версии:', JSON.stringify(updatedTasks));
-    
-      // Добавляем обновлённую задачу
-      updatedTasks.push(taskFound);
-      console.log('Задачи после добавления обновлённой версии:', JSON.stringify(updatedTasks));
-    
-      // Обновляем массив задач
-      currentDailyTasks.splice(0, currentDailyTasks.length, ...updatedTasks);
-      console.log('Финальный список задач:', JSON.stringify(currentDailyTasks));
-    }
-    
-    
+      console.log('Task found:', taskFound);
+      // Если задача уже существует, обновляем её уровень
+      taskFound.dataValues.levels += 1;
 
-    // Обновляем задачи пользователя
-    user.daily_tasks = currentDailyTasks;
+      // Обновляем массив, заменяя старую задачу обновлённой
+      const updatedTasks = currentDailyTasks.map((task) =>
+        task.id === dayliy ? { ...task, levels: taskFound.dataValues.levels } : task
+      );
+      user.daily_tasks = updatedTasks; // Обновляем ссылку на массив
+    }
 
     // Вычитание стоимости из баланса
     user.money -= totalPrice;
