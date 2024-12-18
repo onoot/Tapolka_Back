@@ -389,7 +389,6 @@ export const addTaskToUser = async (userId, taskId) => {
     console.error('Error adding task to user:', error);
   }
 };
-
 export const getMineItems = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -400,26 +399,27 @@ export const getMineItems = async (req, res) => {
 
     const { id } = req.params;
 
-    const user = await User.findOne({ where: { telegramId: id } });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
     const tasks = await Daily.findAll();
     if (!tasks || tasks.length === 0) {
       return res.status(404).json({ message: 'Tasks not found' });
     }
 
+    const user = await User.findOne({ where: { telegramId: id } });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
     // Проверяем прокаченные задачи в user.daily_tasks
     const upgradedTasks = user.daily_tasks || {};
     const updatedTasks = tasks.map(task => {
+      const updatedTask = { ...task.dataValues }; // Создаем копию данных задачи
+
+      // Если есть информация о прокачанном уровне, обновляем поле levels
       if (upgradedTasks[task.id]) {
-        return {
-          ...task.dataValues, // Включаем все данные задачи
-          level: upgradedTasks[task.id] // Добавляем или обновляем уровень задачи
-        };
+        updatedTask.levels = upgradedTasks[task.id];
       }
-      return task;
+
+      return updatedTask;
     });
 
     res.json(updatedTasks);
