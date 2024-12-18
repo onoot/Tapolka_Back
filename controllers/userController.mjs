@@ -485,14 +485,12 @@ export const buyCard = async (req, res) => {
     // Получение пользователя
     const user = await User.findOne({ where: { id: id } });
     if (!user) {
-      console.log('User not found');
       return res.status(404).json({ message: 'User not found' });
     }
 
     // Получение карточки
     const dailyCard = await Daily.findOne({ where: { id: dayliy } });
     if (!dailyCard) {
-      console.log('Daily card not found');
       return res.status(404).json({ message: 'Daily card not found' });
     }
 
@@ -513,7 +511,6 @@ export const buyCard = async (req, res) => {
 
     // Проверка баланса пользователя
     if (user.money < totalPrice) {
-      console.log('Insufficient balance:', user.money, totalPrice);
       return res.status(400).json({ message: 'Insufficient balance' });
     }
 
@@ -521,6 +518,7 @@ export const buyCard = async (req, res) => {
       // Если задачи нет, добавляем новую с уровнем 1
       currentDailyTasks.push({ id: dayliy, levels: 1 });
     } else {
+      console.log(taskFound);
       // Если задача уже существует, увеличиваем её уровень
       taskFound.levels += 1;
     }
@@ -530,7 +528,6 @@ export const buyCard = async (req, res) => {
 
     // Вычитание стоимости из баланса
     user.money -= totalPrice;
-    user.levels += 1;
 
     // Сохранение обновленного пользователя
     await user.save();
