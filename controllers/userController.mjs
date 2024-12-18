@@ -511,21 +511,27 @@ export const buyCard = async (req, res) => {
     }
 
     if (!taskFound) {
-      // Если задачи нет, добавляем новую с уровнем 1
+      console.log('Задача не найдена. Добавляем новую с уровнем 1.');
       currentDailyTasks.push({ id: dayliy, levels: 1 });
+      console.log('Текущие задачи после добавления новой:', JSON.stringify(currentDailyTasks));
     } else {
-      // Если задача уже существует, увеличиваем её уровень
+      console.log('Задача найдена:', JSON.stringify(taskFound));
       taskFound.levels += 1;
+      console.log('Обновлённый уровень задачи:', JSON.stringify(taskFound));
     
       // Удаляем старую задачу
       const updatedTasks = currentDailyTasks.filter((task) => task.id !== dayliy);
+      console.log('Задачи после удаления старой версии:', JSON.stringify(updatedTasks));
     
       // Добавляем обновлённую задачу
       updatedTasks.push(taskFound);
+      console.log('Задачи после добавления обновлённой версии:', JSON.stringify(updatedTasks));
     
       // Обновляем массив задач
       currentDailyTasks.splice(0, currentDailyTasks.length, ...updatedTasks);
+      console.log('Финальный список задач:', JSON.stringify(currentDailyTasks));
     }
+    
     
 
     // Обновляем задачи пользователя
