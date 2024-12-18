@@ -389,36 +389,38 @@ export const addTaskToUser = async (userId, taskId) => {
     console.error('Error adding task to user:', error);
   }
 };
+
 export const getMineItems = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
 
+    // Проверка токена
     if (!token || !VerifJWT(token)) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
     const { id } = req.params;
 
+    // Получение всех задач из базы
     const tasks = await Daily.findAll();
     if (!tasks || tasks.length === 0) {
       return res.status(404).json({ message: 'Tasks not found' });
     }
 
+    // Получение пользователя по telegramId
     const user = await User.findOne({ where: { telegramId: id } });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Получаем данные о прокачанных задачах
+    // Проверка наличия данных о прокачанных задачах
     const upgradedTasks = user.daily_tasks || {};
-    console.log(tasks)
 
-    // Обновляем поле levels для задач
+    // Обновление задач: добавление уровня, если он существует у пользователя
     const updatedTasks = tasks.map(task => {
       const taskCopy = { ...task.dataValues }; // Создаем копию задачи
-      console.log(taskCopy)
 
-      // Если есть прокачанный уровень для этой задачи, обновляем поле levels
+      // Если у пользователя есть уровень для этой задачи, обновляем поле `levels`
       if (upgradedTasks[task.id]) {
         taskCopy.levels = upgradedTasks[task.id];
       }
@@ -426,12 +428,14 @@ export const getMineItems = async (req, res) => {
       return taskCopy;
     });
 
+    // Возвращаем обновленные задачи
     res.json(updatedTasks);
   } catch (error) {
     console.error('Error getting task list:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 export const getDailyItems = async (req, res) => {
   try {
