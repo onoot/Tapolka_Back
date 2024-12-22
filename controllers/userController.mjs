@@ -71,7 +71,7 @@ export const login = async (req, res) => {
     }
 
     const time = getTime();
-    const Rewarw_Data = await DailyCombo.findOne({
+    const Rewarw_Data = await DailyCombo.findAll({
       where: {
         Data: {
           [Op.lt]: time  // Ищет записи, где Data меньше времени
