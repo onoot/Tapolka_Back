@@ -738,3 +738,36 @@ export const getBoard = async (req, res) => {
   }
 };
 
+export const wallet = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ message: 'No token' });
+    } else if (!VerifJWT(token)) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const { id } = req.params;
+    const { wallet } = req.body.wallet;
+    const { connect } = req.body.wallet;
+
+    const user = await User.findOne({
+      where: { id },
+      attributes: ['id', 'rank', 'money', 'firstName'], // Получаем только нужные поля
+    });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    if(connect==true)
+      user.wallet = wallet;
+    else
+      user.wallet = null;
+    await user.save();
+
+    return res.json({ ok });
+  } catch (error) {
+    console.error('Database error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
