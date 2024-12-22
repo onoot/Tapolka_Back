@@ -102,7 +102,7 @@ export const login = async (req, res) => {
       benefit: existingUser.benefit,
       key: existingUser.key,
       combo_daily_tasks: existingUser.combo_daily_tasks,
-      reward: Rewarw_Data?.dataValues
+      reward: Rewarw_Data
       // existingUser: existingUser.toJSON(),
     });
   } catch (e) {
