@@ -69,7 +69,6 @@ export const login = async (req, res) => {
       });
     }
     const time = getTime();
-    console.log("ВРЕМЯ",time);
     const Rewarw_Data = await DailyCombo.findOne({
       where: {
         Data: {
@@ -77,7 +76,6 @@ export const login = async (req, res) => {
         }
       }
     });
-    console.log("ДАнные",Rewarw_Data);
 
     // Обновление энергии пользователя перед отправкой данных клиенту
     const updatedEnergy = await checkAndRegenerateEnergy(existingUser);
