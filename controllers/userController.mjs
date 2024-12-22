@@ -644,7 +644,7 @@ export const buyCard = async (req, res) => {
       }
 
       // Добавляем новый элемент
-      comboDailyTasks.push(dailyCard.id);
+      comboDailyTasks.push({id: dailyCard.id});
 
       // Сохраняем обновленный массив обратно в формате строки
       user.combo_daily_tasks = JSON.stringify(comboDailyTasks);
