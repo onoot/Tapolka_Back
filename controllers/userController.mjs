@@ -59,6 +59,7 @@ export const login = async (req, res) => {
         benefit: 0,
         roleId: 4,
         lastEnergyUpdate: new Date(),
+        combo_daily_tasks: user?.combo_daily_tasks || [],
         key: 0,
       });
     }
@@ -72,7 +73,7 @@ export const login = async (req, res) => {
       JWT_SECRET,
       { expiresIn: '1h' }
     );
-
+   
     // Формирование объекта ответа
     return res.json({
       token,
@@ -87,6 +88,7 @@ export const login = async (req, res) => {
       rank: existingUser.rank,
       benefit: existingUser.benefit,
       key: existingUser.key,
+      combo_daily_tasks: existingUser.combo_daily_tasks,
       // existingUser: existingUser.toJSON(),
     });
   } catch (e) {
@@ -413,6 +415,12 @@ export const getMineItems = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+    
+    const daily_combo = await DailyCombo.findAll();
+    let test;
+    if (tasks&&tasks.length >0) {
+      test = daily_combo[0].reward = tasks[0].reward
+    }
 
     // Преобразование daily_tasks в массив
     const upgradedTasks = Array.isArray(user.daily_tasks)
@@ -551,7 +559,11 @@ export const buyCard = async (req, res) => {
     let taskFound = currentDailyTasks.find((task) => task.id === dayliy);
 
     const currentLevel = taskFound ? taskFound.levels : 0;
-    const targetLevel = currentLevel + 1;
+    let targetLevel
+    if(targetLevel<10)
+       targetLevel = currentLevel + 1;
+    else
+      targetLevel = 10;
 
     // Получаем множитель из карточки
     const multip = dailyCard.multip || 1;
