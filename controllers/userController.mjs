@@ -570,8 +570,8 @@ export const buyCard = async (req, res) => {
     }
 
     const { id } = req.params; // ID пользователя
-    const { dayliy } = req.body; // ID карточки
-    console.log("АААААААААААА ",id, dayliy);
+    const { daily } = req.body; // ID карточки
+    const dayliy = daily;
 
     // Получение пользователя
     const user = await User.findOne({ where: { id } });
