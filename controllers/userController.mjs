@@ -633,8 +633,22 @@ export const buyCard = async (req, res) => {
         : JSON.parse(user.combo_daily_tasks || '[]');
 
       currentComboTasks.push(comboTask);
-      user.combo_daily_tasks = JSON.stringify(dailyCard);
       user.daily_tasks = JSON.stringify(currentDailyTasks);
+      
+      // Проверяем, есть ли уже значение в combo_daily_tasks
+      let comboDailyTasks = user.combo_daily_tasks ? JSON.parse(user.combo_daily_tasks) : [];
+
+      // Убеждаемся, что это массив
+      if (!Array.isArray(comboDailyTasks)) {
+        comboDailyTasks = [];
+      }
+
+      // Добавляем новый элемент
+      comboDailyTasks.push(dailyCard.id);
+
+      // Сохраняем обновленный массив обратно в формате строки
+      user.combo_daily_tasks = JSON.stringify(comboDailyTasks);
+
     }
 
     // Вычитание стоимости из баланса
