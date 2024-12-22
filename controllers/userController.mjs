@@ -595,9 +595,8 @@ export const buyCard = async (req, res) => {
 
     const currentLevel = taskFound ? taskFound.levels : 0;
     const targetLevel = currentLevel < 10 ? currentLevel + 1 : 10;
-
     // Получаем множитель из карточки
-    const multip = dailyCard.multip || 1;
+    const multip = currentLevel==null?0.5:dailyCard.multip || 1;
 
     // Рассчитываем итоговую стоимость
     const totalPrice = dailyCard.price * multip * targetLevel;
@@ -644,7 +643,7 @@ export const buyCard = async (req, res) => {
       }
 
       // Добавляем новый элемент
-      comboDailyTasks.push({id: dailyCard.id});
+      comboDailyTasks.push({id: dailyCard.id, date: dailyCard.date});
 
       // Сохраняем обновленный массив обратно в формате строки
       user.combo_daily_tasks = JSON.stringify(comboDailyTasks);
