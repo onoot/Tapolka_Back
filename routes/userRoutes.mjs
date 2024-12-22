@@ -13,7 +13,7 @@ import {
     DailyItems,
     getTask,
     buyCard,
-    getBoadr
+    getBoard
 } from '../controllers/userController.mjs';
 
 const router = express.Router();
@@ -41,7 +41,7 @@ router.get('/getDailyItems/', DailyItems );
 
 router.post('/getTask', getTask);
 
-router.get('/board', getBoadr);
+router.get('/board', getBoard);
 
 
 router.get('/manifest', (req, res) => {
