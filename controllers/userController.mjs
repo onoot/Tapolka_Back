@@ -81,10 +81,8 @@ export const login = async (req, res) => {
     });
     
     
-    // Сортируем от старых к новым по `Data`
-    const sortedData = filteredData.sort((a, b) => new Date(a.Data) - new Date(b.Data));
     
-    console.log("Отфильтрованные и отсортированные данные:", sortedData.map(data => data.toJSON()));
+    console.log("Отфильтрованные данные:", filteredData);
 
     // Обновление энергии пользователя перед отправкой данных клиенту
     const updatedEnergy = await checkAndRegenerateEnergy(existingUser);
