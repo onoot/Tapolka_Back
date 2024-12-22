@@ -704,7 +704,6 @@ export const refreshToken = (req, res) => {
     res.status(403).json({ message: 'Invalid refresh token' });
   }
 };
-
 export const getBoard = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -717,13 +716,17 @@ export const getBoard = async (req, res) => {
 
     const { id } = req.params;
 
-    const user = await User.findOne({ where: { id } });
+    const user = await User.findOne({
+      where: { id },
+      attributes: ['rank', 'money', 'firstName'], // Получаем только нужные поля
+    });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Получаем первых 20 пользователей, упорядоченных по money
+    // Получаем первых 20 пользователей с указанными полями, упорядоченных по money
     const users = await User.findAll({
+      attributes: ['rank', 'money', 'firstName'], // Указываем только нужные поля
       limit: 20,
       order: [['money', 'DESC']], // Упорядочивание по убыванию money
     });
@@ -734,3 +737,4 @@ export const getBoard = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
