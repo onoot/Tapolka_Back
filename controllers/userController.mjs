@@ -69,11 +69,11 @@ export const login = async (req, res) => {
       });
     }
     const time = getTime();
-    const formattedTime = moment(time).format('YYYY-MM-DD HH:mm:ss'); 
+    console.log("Время",time);
     const Rewarw_Data = await DailyCombo.findAll({
       where: {
         Data: {
-          [Op.lt]: formattedTime  // Ищет записи, где Data меньше времени
+          [Op.lt]: time
         }
       }
     });
