@@ -73,7 +73,7 @@ export const login = async (req, res) => {
       JWT_SECRET,
       { expiresIn: '1h' }
     );
-   
+
     // Формирование объекта ответа
     return res.json({
       token,
@@ -415,10 +415,10 @@ export const getMineItems = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
+
     const daily_combo = await DailyCombo.findAll();
     let test;
-    if (tasks&&tasks.length >0) {
+    if (tasks && tasks.length > 0) {
       test = daily_combo[0].reward = tasks[0].reward
     }
 
@@ -466,7 +466,7 @@ const isValidCard = async (obj) => {
     }
 
     // Получаем дату из карточки в формате Unix
-    const Data = card.Data; 
+    const Data = card.Data;
 
     // Проверяем, что текущая дата меньше даты истечения
     if (currentDate < Data) {
@@ -565,11 +565,9 @@ export const buyCard = async (req, res) => {
     // Ограничиваем уровень до максимума 10
     const targetLevel = currentLevel < 10 ? currentLevel + 1 : 10;
 
-    // Получаем множитель из карточки
-    const multip = dailyCard.multip || 1;
+    const multip = dailyCard.multip || 1; // Получаем множитель (по умолчанию 1)
+    const totalPrice = dailyCard.price * multip * targetLevel; // Расчет итоговой цены
 
-    // Рассчитываем итоговую стоимость
-    const totalPrice = dailyCard.price * Math.pow(multip, targetLevel - 1);
 
     // Проверка баланса пользователя
     if (user.money < totalPrice) {
