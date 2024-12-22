@@ -69,15 +69,18 @@ export const login = async (req, res) => {
       });
     }
     const time =new Date(getTime());
-    const Rewarw_Data = await DailyCombo.findOne({
-      where: {
-        Data: {
-          [Op.lt]: time
-        }
-      }
+    const Rewarw_Data = await DailyCombo.findAll({
+      limit: 10, // Ограничиваем количество записей
+      order: [['id', 'DESC']], // Сортируем по id в обратном порядке (опционально)
     });
-    console.log(time);
-    console.log(Rewarw_Data);
+    
+    // Фильтруем данные, чтобы включить только записи с `Data` меньше текущего времени
+    const filteredData = Rewarw_Data.filter(record => new Date(record.Data) < new Date(time));
+    
+    // Сортируем от старых к новым по `Data`
+    const sortedData = filteredData.sort((a, b) => new Date(a.Data) - new Date(b.Data));
+    
+    console.log("Отфильтрованные и отсортированные данные:", sortedData.map(data => data.toJSON()));
 
     // Обновление энергии пользователя перед отправкой данных клиенту
     const updatedEnergy = await checkAndRegenerateEnergy(existingUser);
@@ -104,7 +107,7 @@ export const login = async (req, res) => {
       benefit: existingUser.benefit,
       key: existingUser.key,
       combo_daily_tasks: existingUser.combo_daily_tasks,
-      reward: Rewarw_Data
+      reward: sortedData
       // existingUser: existingUser.toJSON(),
     });
   } catch (e) {
