@@ -75,7 +75,11 @@ export const login = async (req, res) => {
     });
     
     // Фильтруем данные, чтобы включить только записи с `Data` меньше текущего времени
-    const filteredData = Rewarw_Data.filter(record => record.Data < time);
+    const filteredData = Rewarw_Data.filter(record => {
+      const recordDate = Date.parse(record.Data) ? new Date(record.Data) : null;
+      return recordDate && recordDate < new Date(time);
+    });
+    
     
     // Сортируем от старых к новым по `Data`
     const sortedData = filteredData.sort((a, b) => new Date(a.Data) - new Date(b.Data));
