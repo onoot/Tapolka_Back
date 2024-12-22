@@ -68,8 +68,8 @@ export const login = async (req, res) => {
         key: 0,
       });
     }
-    const formattedTime = moment(time).format('YYYY-MM-DD HH:mm:ss'); 
     const time = getTime();
+    const formattedTime = moment(time).format('YYYY-MM-DD HH:mm:ss'); 
     const Rewarw_Data = await DailyCombo.findAll({
       where: {
         Data: {
