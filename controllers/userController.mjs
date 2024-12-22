@@ -97,7 +97,6 @@ export const login = async (req, res) => {
       }
     });
     
-    console.log("Отфильтрованные данные:", filteredData);
 
     // Обновление энергии пользователя перед отправкой данных клиенту
     const updatedEnergy = await checkAndRegenerateEnergy(existingUser);
@@ -124,8 +123,10 @@ export const login = async (req, res) => {
       benefit: existingUser.benefit,
       key: existingUser.key,
       combo_daily_tasks: existingUser.combo_daily_tasks,
-      reward: Rewarw_Data
-      // existingUser: existingUser.toJSON(),
+      reward: {
+        reward: filteredData[0]?.reward || null,
+        date: filteredData[0]?.Data || null
+      },
     });
   } catch (e) {
     console.error(e);
