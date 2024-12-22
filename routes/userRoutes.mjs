@@ -41,7 +41,7 @@ router.get('/getDailyItems/', DailyItems );
 
 router.post('/getTask', getTask);
 
-router.get('/board', getBoard);
+router.get('/board/:id', getBoard);
 
 
 router.get('/manifest', (req, res) => {
