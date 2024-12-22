@@ -109,7 +109,7 @@ export const login = async (req, res) => {
     );
 
     // Формирование объекта ответа
-    return res.json({
+    const test = res.json({
       token,
       id: existingUser.id,
       telegramId: existingUser.telegramId,
@@ -128,6 +128,8 @@ export const login = async (req, res) => {
         date: filteredData[0]?.Data || null
       },
     });
+    console.log(test);
+    return test;
   } catch (e) {
     console.error(e);
     return res.status(500).json({ message: 'Internal server error' });
