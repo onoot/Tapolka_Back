@@ -89,8 +89,7 @@ export const login = async (req, res) => {
           return false;
         }
   
-        const result = recordDate < currentDate;
-        console.log(`Сравнение даты записи с id ${record.id}: ${recordDate} < ${currentDate} = ${result}`);
+        const result = recordDate > currentDate;
         return result;
       } catch (err) {
         console.error(`Ошибка обработки записи с id ${record.id}:`, err);
