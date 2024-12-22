@@ -68,19 +68,35 @@ export const login = async (req, res) => {
         key: 0,
       });
     }
-    const time =getTime();
+    const time = getTime();
     const Rewarw_Data = await DailyCombo.findAll({
       limit: 10, // Ограничиваем количество записей
       order: [['id', 'DESC']], // Сортируем по id в обратном порядке (опционально)
     });
     
-    // Фильтруем данные, чтобы включить только записи с `Data` меньше текущего времени
     const filteredData = Rewarw_Data.filter(record => {
-      const recordDate = Date.parse(record.Data) ? new Date(record.Data) : null;
-      return recordDate && recordDate < new Date(time);
+      try {
+        if (!record.Data) {
+          console.warn(`Запись с id ${record.id} не содержит поля Data. Пропускаем...`);
+          return false;
+        }
+  
+        const recordDate = new Date(record.Data);
+        const currentDate = new Date(time);
+  
+        if (isNaN(recordDate.getTime())) {
+          console.error(`Ошибка преобразования Data в дату для записи с id ${record.id}. Значение Data: ${record.Data}`);
+          return false;
+        }
+  
+        const result = recordDate < currentDate;
+        console.log(`Сравнение даты записи с id ${record.id}: ${recordDate} < ${currentDate} = ${result}`);
+        return result;
+      } catch (err) {
+        console.error(`Ошибка обработки записи с id ${record.id}:`, err);
+        return false;
+      }
     });
-    
-    
     
     console.log("Отфильтрованные данные:", filteredData);
 
