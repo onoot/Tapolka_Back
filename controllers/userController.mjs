@@ -68,7 +68,7 @@ export const login = async (req, res) => {
         key: 0,
       });
     }
-    const time =new Date(getTime());
+    const time =getTime();
     const Rewarw_Data = await DailyCombo.findAll({
       limit: 10, // Ограничиваем количество записей
       order: [['id', 'DESC']], // Сортируем по id в обратном порядке (опционально)
