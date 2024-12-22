@@ -339,7 +339,7 @@ export const getFriendList = async (req, res) => {
 
     const friends = await User.findAll({
       where: { telegramId: referralIds },
-      attributes: ['id', 'firstName', 'benefit', 'rank'],
+      attributes: ['id', 'firstName', 'money', 'rank'],
     });
 
     return res.json({ friends });
