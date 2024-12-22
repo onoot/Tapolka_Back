@@ -704,3 +704,26 @@ export const refreshToken = (req, res) => {
     res.status(403).json({ message: 'Invalid refresh token' });
   }
 };
+
+export const getBoadr = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+
+    if (!token) {
+      return res.status(401).json({ message: 'No token' });
+    } else if (!VerifJWT(token)) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const { id } = req.params;
+    const user = await User.findOne({ where: { id } });
+    const users = await User.findAll();
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    return res.json({ users, user });
+  } catch (error) {
+    console.error('Database error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+
+}
