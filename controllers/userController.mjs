@@ -18,7 +18,7 @@ const { JWT_SECRET } = process.env;
 const { JWT_REFRESH_SECRET } = process.env;
 
 export const getTime = () => {
-  return moment().tz('Europe/London').format('YYYY-MM-DD HH:mm:ss');
+  return moment().tz('Europe/London').toISOString();
 };
 
 export const validateTelegramInitData = (initData) => {
@@ -69,18 +69,16 @@ export const login = async (req, res) => {
       });
     }
     const time = getTime();
-    const Rewarw_Data = await DailyCombo.findAll({
-      limit: 10, // Ограничиваем количество записей
-      order: [['id', 'DESC']], // Сортируем записи по полю 'id' в обратном порядке (от последнего к первому)
+    console.log("ВРЕМЯ",time);
+    const Rewarw_Data = await DailyCombo.findOne({
+      where: {
+        Data: {
+          [Op.lt]: time
+        }
+      }
     });
+    console.log("ДАнные",Rewarw_Data);
 
-    // Фильтруем данные, чтобы включить только записи с `Data` меньше текущего времени
-    const filteredData = Rewarw_Data.filter(record => new Date(record.Data) < new Date(time));
-
-    // Сортируем от старых к новым по `Data`
-    const sortedData = filteredData.sort((a, b) => new Date(a.Data) - new Date(b.Data));
-
-    console.log("ДАННЫЕ ААААААААААААААА\n", Rewarw_Data)
     // Обновление энергии пользователя перед отправкой данных клиенту
     const updatedEnergy = await checkAndRegenerateEnergy(existingUser);
 
@@ -106,7 +104,7 @@ export const login = async (req, res) => {
       benefit: existingUser.benefit,
       key: existingUser.key,
       combo_daily_tasks: existingUser.combo_daily_tasks,
-      // reward: sortedData?.dataValues
+      reward: Rewarw_Data?.dataValues
       // existingUser: existingUser.toJSON(),
     });
   } catch (e) {
