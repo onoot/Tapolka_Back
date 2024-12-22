@@ -35,7 +35,6 @@ export const parseTelegramData = (initData) => {
 };
 
 // Функция для проверки и верификации JWT токена
-
 export const login = async (req, res) => {
   try {
     const { query_id, user, auth_date, hash } = req.body;
@@ -69,12 +68,12 @@ export const login = async (req, res) => {
         key: 0,
       });
     }
-
+    const formattedTime = moment(time).format('YYYY-MM-DD HH:mm:ss'); 
     const time = getTime();
     const Rewarw_Data = await DailyCombo.findAll({
       where: {
         Data: {
-          [Op.lt]: time  // Ищет записи, где Data меньше времени
+          [Op.lt]: formattedTime  // Ищет записи, где Data меньше времени
         }
       }
     });
@@ -105,7 +104,7 @@ export const login = async (req, res) => {
       benefit: existingUser.benefit,
       key: existingUser.key,
       combo_daily_tasks: existingUser.combo_daily_tasks,
-      Rewarw_Data: Rewarw_Data?.dataValues
+      reward: Rewarw_Data?.dataValues
       // existingUser: existingUser.toJSON(),
     });
   } catch (e) {
