@@ -76,7 +76,7 @@ export const login = async (req, res) => {
         }
       }
     });
-    console.log(getTime);
+    console.log(time);
     console.log(Rewarw_Data);
 
     // Обновление энергии пользователя перед отправкой данных клиенту
