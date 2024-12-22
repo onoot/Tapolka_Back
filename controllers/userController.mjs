@@ -546,11 +546,6 @@ export const buyCard = async (req, res) => {
       ? user.daily_tasks
       : JSON.parse(user.daily_tasks || '[]');
 
-    // Проверяем и преобразуем combo_daily_tasks
-    const currentComboTasks = Array.isArray(user.combo_daily_tasks)
-      ? user.combo_daily_tasks
-      : JSON.parse(user.combo_daily_tasks || '[]');
-
     // Получение карточки
     const dailyCard = await Daily.findOne({ where: { id: dayliy } });
     if (!dailyCard) {
@@ -561,13 +556,13 @@ export const buyCard = async (req, res) => {
     let taskFound = currentDailyTasks.find((task) => task.id === dayliy);
 
     const currentLevel = taskFound ? taskFound.levels : 0;
+    let targetLevel = currentLevel < 10 ? currentLevel + 1 : 10;
 
-    // Ограничиваем уровень до максимума 10
-    const targetLevel = currentLevel < 10 ? currentLevel + 1 : 10;
+    // Получаем множитель из карточки
+    const multip = dailyCard.multip || 1;
 
-    const multip = dailyCard.multip || 1; // Получаем множитель (по умолчанию 1)
-    const totalPrice = dailyCard.price * multip * targetLevel; // Расчет итоговой цены
-
+    // Рассчитываем итоговую стоимость
+    const totalPrice = dailyCard.price * multip * targetLevel;
 
     // Проверка баланса пользователя
     if (user.money < totalPrice) {
@@ -580,31 +575,31 @@ export const buyCard = async (req, res) => {
     } else {
       // Если задача уже существует, обновляем массив
       currentDailyTasks.forEach((task) => {
-        if (task.id === dayliy && task.levels < 10) {
-          task.levels += 1; // Обновляем уровень, если он меньше 10
+        if (task.id === dayliy) {
+          if (task.levels < 10) task.levels += 1; // Обновляем уровень
         }
       });
     }
 
-    // Проверяем, угадана ли задача
+    // Добавляем в combo_daily_tasks, если угадано
     const Tru = await isValidCard({ id: dayliy });
-
     if (Tru) {
-      // Получение данных из DailyCombo
-      const dailyCombo = await DailyCombo.findOne({ where: { dailyId: dayliy } });
-      if (dailyCombo) {
-        currentComboTasks.push({
-          id: dayliy,
-          timestamp: new Date().toISOString(),
-          guessed: true,
-          reward: dailyCombo.reward,
-        });
-      }
+      const comboTask = {
+        id: dayliy,
+        reward: dailyCard.reward,
+        data: dailyCard.Data,
+      };
+
+      const currentComboTasks = Array.isArray(user.combo_daily_tasks)
+        ? user.combo_daily_tasks
+        : JSON.parse(user.combo_daily_tasks || '[]');
+
+      currentComboTasks.push(comboTask);
+      user.combo_daily_tasks = JSON.stringify(currentComboTasks);
     }
 
     // Обновляем задачи пользователя
     user.daily_tasks = JSON.stringify(currentDailyTasks);
-    user.combo_daily_tasks = JSON.stringify(currentComboTasks);
 
     // Вычитание стоимости из баланса
     user.money -= totalPrice;
@@ -624,6 +619,7 @@ export const buyCard = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 
 
