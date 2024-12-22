@@ -68,7 +68,7 @@ export const login = async (req, res) => {
         key: 0,
       });
     }
-    const time = getTime();
+    const time =new Date(getTime());
     const Rewarw_Data = await DailyCombo.findOne({
       where: {
         Data: {
