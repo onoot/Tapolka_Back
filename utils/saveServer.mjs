@@ -29,7 +29,7 @@ export async function saveServerAddress(port) {
         active: true, // Отметим сервер как активный
       });
 
-      console.log(`Server address saved: ${serverAddress}:${port}`);
+      // console.log(`Server address saved: ${serverAddress}:${port}`);
     } else {
       console.log(`Server address already exists: ${serverAddress}:${port}`);
     }
