@@ -1,5 +1,7 @@
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
+import moment from 'moment-timezone';
+import { Op } from 'sequelize';
 
 import User from '../models/User.mjs';
 import Role from '../models/Role.mjs';
@@ -14,6 +16,10 @@ dotenv.config();
 const SECRET_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const { JWT_SECRET } = process.env;
 const { JWT_REFRESH_SECRET } = process.env;
+
+export const getTime = () => {
+  return moment().tz('Europe/London').format('YYYY-MM-DD HH:mm:ss');
+};
 
 export const validateTelegramInitData = (initData) => {
   return initData && typeof initData === 'string';
@@ -64,6 +70,15 @@ export const login = async (req, res) => {
       });
     }
 
+    const time = getTime();
+    const Rewarw_Data = await DailyCombo.findOne({
+      where: {
+        Data: {
+          [Op.lt]: time  // Ищет записи, где Data меньше времени
+        }
+      }
+    });
+
     // Обновление энергии пользователя перед отправкой данных клиенту
     const updatedEnergy = await checkAndRegenerateEnergy(existingUser);
 
@@ -89,6 +104,7 @@ export const login = async (req, res) => {
       benefit: existingUser.benefit,
       key: existingUser.key,
       combo_daily_tasks: existingUser.combo_daily_tasks,
+      Rewarw_Data: Rewarw_Data?.dataValues
       // existingUser: existingUser.toJSON(),
     });
   } catch (e) {
@@ -597,9 +613,6 @@ export const buyCard = async (req, res) => {
       currentComboTasks.push(comboTask);
       user.combo_daily_tasks = JSON.stringify(currentComboTasks);
     }
-
-    // Обновляем задачи пользователя
-    user.daily_tasks = JSON.stringify(currentDailyTasks);
 
     // Вычитание стоимости из баланса
     user.money -= totalPrice;
