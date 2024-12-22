@@ -580,7 +580,7 @@ export const buyCard = async (req, res) => {
     }
 
     // Проверяем и преобразуем daily_tasks
-    let currentDailyTasks = Array.isArray(user.daily_tasks)
+    const currentDailyTasks = Array.isArray(user.daily_tasks)
       ? user.daily_tasks
       : JSON.parse(user.daily_tasks || '[]');
 
