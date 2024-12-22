@@ -580,7 +580,7 @@ export const buyCard = async (req, res) => {
     }
 
     // Проверяем и преобразуем daily_tasks
-    const currentDailyTasks = Array.isArray(user.daily_tasks)
+    let currentDailyTasks = Array.isArray(user.daily_tasks)
       ? user.daily_tasks
       : JSON.parse(user.daily_tasks || '[]');
 
@@ -594,7 +594,7 @@ export const buyCard = async (req, res) => {
     let taskFound = currentDailyTasks.find((task) => task.id === dayliy);
 
     const currentLevel = taskFound ? taskFound.levels : 0;
-    let targetLevel = currentLevel < 10 ? currentLevel + 1 : 10;
+    const targetLevel = currentLevel < 10 ? currentLevel + 1 : 10;
 
     // Получаем множитель из карточки
     const multip = dailyCard.multip || 1;
@@ -633,7 +633,8 @@ export const buyCard = async (req, res) => {
         : JSON.parse(user.combo_daily_tasks || '[]');
 
       currentComboTasks.push(comboTask);
-      user.combo_daily_tasks = JSON.stringify(currentComboTasks);
+      user.combo_daily_tasks = JSON.stringify(dailyCard);
+      user.daily_tasks = JSON.stringify(currentDailyTasks);
     }
 
     // Вычитание стоимости из баланса
