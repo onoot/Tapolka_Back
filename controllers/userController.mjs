@@ -754,7 +754,7 @@ export const wallet = async (req, res) => {
 
     const user = await User.findOne({
       where: { id },
-      attributes: ['id', 'rank', 'money', 'firstName'], // Получаем только нужные поля
+      attributes: ['id', 'rank', 'money', 'firstName'], 
     });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -767,7 +767,7 @@ export const wallet = async (req, res) => {
 
     return res.json({ ok });
   } catch (error) {
-    console.error('Database error:', error);
+    console.log('Database error:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
