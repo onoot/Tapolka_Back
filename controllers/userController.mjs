@@ -751,8 +751,7 @@ export const wallet = async (req, res) => {
     const { id } = req.params;
     const { wallet } = req.body.wallet;
     const { connect } = req.body.wallet;
-    console.log("Тело",req.body)
-    console.log("Тело2",JSON.stringify(req.body))
+   
 
     const user = await User.findOne({
       where: { id },
@@ -770,6 +769,8 @@ export const wallet = async (req, res) => {
     return res.json({ ok });
   } catch (error) {
     console.log('Ошибка:', error);
+    console.log("Тело",req.body)
+    console.log("Тело2",JSON.stringify(req.body))
     res.status(500).json({ message: 'Internal server error' });
   }
 };
