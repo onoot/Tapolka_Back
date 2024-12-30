@@ -737,6 +737,7 @@ export const getBoard = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 export const wallet = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -754,7 +755,7 @@ export const wallet = async (req, res) => {
       return res.status(400).json({ message: 'Wallet data is missing' });
     }
 
-    const { wallet, connect } = req.body.wallet;
+    const { wallet, connect } = req.body;
     console.log("PaymentAddress ", wallet)
 
     if(wallet==undefined){
