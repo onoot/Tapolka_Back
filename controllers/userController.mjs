@@ -737,7 +737,6 @@ export const getBoard = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
 export const wallet = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -749,28 +748,31 @@ export const wallet = async (req, res) => {
     }
 
     const { id } = req.params;
-    const { wallet } = req.body.wallet;
-    const { connect } = req.body.wallet;
-   
+
+    // Проверяем наличие `req.body.wallet`
+    if (!req.body.wallet) {
+      return res.status(400).json({ message: 'Wallet data is missing' });
+    }
+
+    const { wallet, connect } = req.body.wallet;
 
     const user = await User.findOne({
       where: { id },
       attributes: ['id', 'rank', 'money', 'firstName'], 
     });
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    if(connect==true)
-      user.wallet = wallet;
-    else
-      user.wallet = null;
+
+    // Обновляем `wallet` пользователя в зависимости от значения `connect`
+    user.wallet = connect === true ? wallet : null;
+
     await user.save();
 
-    return res.json({ ok });
+    return res.json({ message: 'Wallet updated successfully' });
   } catch (error) {
-    console.log('Ошибка:', error);
-    console.log("Тело",req.body)
-    console.log("Тело2",JSON.stringify(req.body))
+    console.error('Ошибка:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };
