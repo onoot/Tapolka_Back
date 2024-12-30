@@ -758,16 +758,13 @@ export const wallet = async (req, res) => {
     const { wallet, connect } = req.body;
     console.log("PaymentAddress ", wallet)
 
-    if(wallet==undefined){
-      console.log(req.body)
-    }
-
     const user = await User.findOne({
       where: { id },
       attributes: ['id', 'rank', 'money', 'firstName'], 
     });
 
     if (!user) {
+      console.log(req.body)
       return res.status(404).json({ message: 'User not found' });
     }
 
