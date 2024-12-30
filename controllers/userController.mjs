@@ -755,6 +755,7 @@ export const wallet = async (req, res) => {
     }
 
     const { wallet, connect } = req.body.wallet;
+    console.log("PaymentAddress ", wallet)
 
     const user = await User.findOne({
       where: { id },
