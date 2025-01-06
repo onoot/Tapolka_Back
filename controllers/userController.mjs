@@ -73,22 +73,22 @@ export const login = async (req, res) => {
       limit: 10, // Ограничиваем количество записей
       order: [['id', 'DESC']], // Сортируем по id в обратном порядке (опционально)
     });
-    
+
     const filteredData = Rewarw_Data.filter(record => {
       try {
         if (!record.Data) {
           console.warn(`Запись с id ${record.id} не содержит поля Data. Пропускаем...`);
           return false;
         }
-  
+
         const recordDate = new Date(record.Data);
         const currentDate = new Date(time);
-  
+
         if (isNaN(recordDate.getTime())) {
           console.error(`Ошибка преобразования Data в дату для записи с id ${record.id}. Значение Data: ${record.Data}`);
           return false;
         }
-  
+
         const result = recordDate > currentDate;
         return result;
       } catch (err) {
@@ -96,7 +96,7 @@ export const login = async (req, res) => {
         return false;
       }
     });
-    
+
 
     // Обновление энергии пользователя перед отправкой данных клиенту
     const updatedEnergy = await checkAndRegenerateEnergy(existingUser);
@@ -596,7 +596,7 @@ export const buyCard = async (req, res) => {
     const currentLevel = taskFound ? taskFound.levels : 0;
     const targetLevel = currentLevel < 10 ? currentLevel + 1 : 10;
     // Получаем множитель из карточки
-    const multip = currentLevel==null?0.5:dailyCard.multip || 1;
+    const multip = currentLevel == null ? 0.5 : dailyCard.multip || 1;
 
     // Рассчитываем итоговую стоимость
     const totalPrice = dailyCard.price * multip * targetLevel;
@@ -633,7 +633,7 @@ export const buyCard = async (req, res) => {
 
       currentComboTasks.push(comboTask);
       user.daily_tasks = JSON.stringify(currentDailyTasks);
-      
+
       // Проверяем, есть ли уже значение в combo_daily_tasks
       let comboDailyTasks = user.combo_daily_tasks ? JSON.parse(user.combo_daily_tasks) : [];
 
@@ -643,7 +643,7 @@ export const buyCard = async (req, res) => {
       }
 
       // Добавляем новый элемент
-      comboDailyTasks.push({id: dailyCard.id, date: dailyCard.date});
+      comboDailyTasks.push({ id: dailyCard.id, date: dailyCard.date });
 
       // Сохраняем обновленный массив обратно в формате строки
       user.combo_daily_tasks = JSON.stringify(comboDailyTasks);
@@ -726,7 +726,7 @@ export const getBoard = async (req, res) => {
 
     // Получаем первых 20 пользователей с указанными полями, упорядоченных по money
     const users = await User.findAll({
-      attributes: ['id','rank', 'money', 'firstName'], // Указываем только нужные поля
+      attributes: ['id', 'rank', 'money', 'firstName'], // Указываем только нужные поля
       limit: 20,
       order: [['money', 'DESC']], // Упорядочивание по убыванию money
     });
@@ -760,7 +760,7 @@ export const wallet = async (req, res) => {
 
     const user = await User.findOne({
       where: { id },
-      attributes: ['id', 'rank', 'money', 'firstName'], 
+      attributes: ['id', 'rank', 'money', 'firstName'],
     });
 
     if (!user) {
@@ -777,5 +777,64 @@ export const wallet = async (req, res) => {
   } catch (error) {
     console.error('Ошибка:', error);
     res.status(500).json({ message: 'Internal server error' });
+  }
+};
+export const checkDaily = async (req, res) => {
+  try {
+    // Check for valid authorization header
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'Missing authorization token' });
+    }
+
+    // Verify JWT token
+    const verified = await VerifJWT(token);
+    if (!verified) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    // Extract user ID from request body
+    const { userId } = req.body;
+    if (!userId) {
+      return res.status(400).json({ message: 'Missing user ID in request body' });
+    }
+
+    // Fetch user data
+    const user = await User.findOne({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Parse and process combo_daily_tasks
+    const newArray = JSON.parse(user?.combo_daily || '[]');
+    const uniqueTasks = Array.from(new Set(newArray.map(task => task.id))); // Remove duplicates
+
+    let correctCardsCount = 0;
+    let reward = 0;
+
+    for (const taskId of uniqueTasks) {
+      const isValid = await isValidCard({ id: taskId });
+      if (isValid) {
+        correctCardsCount++;
+        if (correctCardsCount === 1) {
+          // Fetch reward from the first valid card
+          const daily = await DailyCombo.findOne({ where: { id: taskId } });
+          reward = daily?.reward || 0;
+        }
+      }
+      if (correctCardsCount === 3) {
+        // Update user balance and clear combo_daily
+        user.money = (user.money || 0) + reward;
+        user.combo_daily_tasks = '[]';
+        await user.save();
+
+        return res.json({ message: 'Daily check successful', reward });
+      }
+    }
+
+    return res.status(400).json({ message: 'Not enough correct cards to complete the daily task' });
+  } catch (error) {
+    console.error('Error checking daily:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };

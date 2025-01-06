@@ -14,7 +14,8 @@ import {
     getTask,
     buyCard,
     getBoard,
-    wallet
+    wallet,
+    checkDaily
 } from '../controllers/userController.mjs';
 
 const router = express.Router();
@@ -43,6 +44,8 @@ router.get('/getDailyItems/', DailyItems );
 router.post('/getTask', getTask);
 
 router.get('/board/:id', getBoard);
+
+router.post('/check-daily/', checkDaily);
 
 router.post('/wallet/:id', wallet);
 
