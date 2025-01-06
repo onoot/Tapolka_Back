@@ -806,7 +806,7 @@ export const checkDaily = async (req, res) => {
     }
 
     // Parse and process combo_daily_tasks
-    const newArray = JSON.parse(user?.combo_daily || '[]');
+    const newArray = JSON.parse(user?.combo_daily_tasks || '[]');
     const uniqueTasks = Array.from(new Set(newArray.map(task => task.id))); // Remove duplicates
 
     let correctCardsCount = 0;
@@ -834,6 +834,8 @@ export const checkDaily = async (req, res) => {
     console.log(correctCardsCount)
     console.log(reward)
     console.log(uniqueTasks)
+    console.log(newArray)
+    console.log(user?.combo_daily_tasks)
 
     return res.status(400).json({ message: 'Not enough correct cards to complete the daily task' });
   } catch (error) {
