@@ -835,7 +835,7 @@ export const checkDaily = async (req, res) => {
     console.log(reward)
     console.log(uniqueTasks)
     console.log(newArray)
-    console.log(user?.dataValues?.combo_daily_tasks)
+    console.log(user?.dataValues)
 
     return res.status(400).json({ message: 'Not enough correct cards to complete the daily task' });
   } catch (error) {
