@@ -831,6 +831,9 @@ export const checkDaily = async (req, res) => {
         return res.json({ message: 'Daily check successful', reward });
       }
     }
+    console.log(correctCardsCount)
+    console.log(reward)
+    console.log(uniqueTasks)
 
     return res.status(400).json({ message: 'Not enough correct cards to complete the daily task' });
   } catch (error) {
