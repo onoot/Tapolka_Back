@@ -477,7 +477,7 @@ export const getMineItems = async (req, res) => {
       return taskCopy;
     });
 
-    res.json(updatedTasks);
+    res.json(updatedTasks, user?.Invited?.length);
   } catch (error) {
     console.error('Error getting task list:', error);
     res.status(500).json({ message: 'Internal server error' });
