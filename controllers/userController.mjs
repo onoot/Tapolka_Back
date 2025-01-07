@@ -448,7 +448,7 @@ export const getMineItems = async (req, res) => {
     }
 
     // Получение пользователя по telegramId
-    const user = await User.findOne({ where: { telegramId: id } });
+    const user = await User.findOne({ where: { id: id } });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
