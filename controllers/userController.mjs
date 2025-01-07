@@ -779,6 +779,7 @@ export const wallet = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 export const checkDaily = async (req, res) => {
   try {
     // Check for valid authorization header
@@ -805,6 +806,12 @@ export const checkDaily = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
+    const winCombo = user?.win_combo || { status: false, date: null };
+    if (winCombo?.status === true) {
+      return res.status(100).json({ message: 'Daily check successful' });
+    }
+    
+
     // Parse and process combo_daily_tasks
     const newArray = JSON.parse(user?.dataValues?.combo_daily_tasks || '[]');
     const uniqueTasks = Array.from(new Set(newArray.map(task => task.id))); // Remove duplicates
@@ -825,6 +832,10 @@ export const checkDaily = async (req, res) => {
       if (correctCardsCount === 3) {
         // Update user balance and clear combo_daily
         user.money = (user.money || 0) + reward;
+        user.win_combo = {
+          status: true,
+          date: Date.now(), 
+        };
         await user.save();
 
         return res.json({ message: 'Daily check successful', reward });
