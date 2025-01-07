@@ -795,6 +795,8 @@ export const checkDaily = async (req, res) => {
 
     // Извлечение userId из тела запроса
     const { userId } = req.body;
+    const { daily } = req.body;
+
     if (!userId) {
       return res.status(400).json({ message: 'Missing user ID in request body' });
     }
@@ -804,37 +806,9 @@ export const checkDaily = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
-    const winCombo = user?.win_combo || { status: false, date: null };
-
-    // Если статус winCombo = true, проверяем актуальность задачи
-    if (winCombo?.status === true) {
-      const currentDate = Date.now();
-
-      // Ищем ближайшую задачу, дата которой больше текущей
-      const card = await DailyCombo.findOne({
-        where: {
-          Data: { [Op.gt]: currentDate }, // Используем оператор Sequelize для сравнения
-        },
-        order: [['Data', 'ASC']], // Берем ближайшую по времени задачу
-      });
-
-      if (!card) {
-        console.error('No active card found');
-        return res.status(404).json({ message: 'No active card found' });
-      }
-
-      const cardDate = card.Data;
-
-      // Сравниваем дату задачи с датой winCombo
-      if (winCombo.date >= cardDate) {
-        return res.status(100).json({ message: 'Daily check successful' });
-      } 
-    }
-
     // Логика обработки combo_daily_tasks
     const newArray = JSON.parse(user?.dataValues?.combo_daily_tasks || '[]');
-    const uniqueTasks = Array.from(new Set(newArray.map(task => task.id))); // Убираем дубли
+    const uniqueTasks = Array.from(new Set(newArray.map(task => task.id))); 
 
     let correctCardsCount = 0;
     let reward = 0;
@@ -859,6 +833,18 @@ export const checkDaily = async (req, res) => {
         await user.save();
 
         return res.json({ message: 'Daily check successful', reward });
+      }
+    }
+    const winCombo = user?.win_combo || { status: false, date: null };
+    if (winCombo?.status === true && correctCardsCount < 3) {
+      for (const taskId of uniqueTasks) {
+        const isValid = await isValidCard({ id: taskId });
+        if (!isValid)
+          continue;
+        const daily = await DailyCombo.findOne({ where: { id: taskId } });
+        if (winCombo.date >= daily?.dataValues?.Data) {
+          return res.status(100).json({ message: 'Daily check successful' });
+        }
       }
     }
 
