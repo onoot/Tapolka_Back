@@ -578,7 +578,6 @@ export const buyCard = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-
     // Проверяем и преобразуем daily_tasks
     const currentDailyTasks = Array.isArray(user.daily_tasks)
       ? user.daily_tasks
@@ -589,6 +588,25 @@ export const buyCard = async (req, res) => {
     if (!dailyCard) {
       return res.status(404).json({ message: 'Daily card not found' });
     }
+    
+    //Проверяем, заблокирована ли карточка и какая она по счету
+     if (dailyCard.isLock) {
+      // Узнаем общее количество карточек и номер текущей карточки
+      const allCards = await Daily.findAll({ order: [['id', 'ASC']] });
+      const cardIndex = allCards.findIndex((card) => card.id === dailyId);
+
+      if (cardIndex === -1) {
+        return res.status(400).json({ message: 'Card not found in the list' });
+      }
+
+      // Подсчитываем количество разблокированных карточек (по приглашениям)
+      const invitedCount = user.Invited ? user.Invited.split(',').length : 0;
+
+      if (invitedCount <= cardIndex) {
+        return res.status(400).json({ message: 'Daily card is locked' });
+      }
+    }
+
 
     // Ищем задачу
     let taskFound = currentDailyTasks.find((task) => task.id === dayliy);
@@ -813,6 +831,18 @@ export const checkDaily = async (req, res) => {
     let correctCardsCount = 0;
     let reward = 0;
 
+    const winCombo = user?.win_combo || { status: false, date: null };
+    if (winCombo?.status === true) {
+      for (const taskId of uniqueTasks) {
+        const isValid = await isValidCard({ id: taskId });
+        if (!isValid)
+          continue;
+        const daily = await DailyCombo.findOne({ where: { id: taskId } });
+        if (winCombo.date >= daily?.dataValues?.Data) {
+          return res.status(100).json({ message: 'Daily check successful' });
+        }
+      }
+    }
     for (const taskId of uniqueTasks) {
       const isValid = await isValidCard({ id: taskId });
       if (isValid) {
@@ -835,18 +865,7 @@ export const checkDaily = async (req, res) => {
         return res.json({ message: 'Daily check successful', reward });
       }
     }
-    const winCombo = user?.win_combo || { status: false, date: null };
-    if (winCombo?.status === true && correctCardsCount < 3) {
-      for (const taskId of uniqueTasks) {
-        const isValid = await isValidCard({ id: taskId });
-        if (!isValid)
-          continue;
-        const daily = await DailyCombo.findOne({ where: { id: taskId } });
-        if (winCombo.date >= daily?.dataValues?.Data) {
-          return res.status(100).json({ message: 'Daily check successful' });
-        }
-      }
-    }
+    
 
     if (correctCardsCount < 3) {
       return res.status(400).json({ message: 'Not enough correct cards to complete the daily task' });
