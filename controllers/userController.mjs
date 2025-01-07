@@ -825,7 +825,6 @@ export const checkDaily = async (req, res) => {
       if (correctCardsCount === 3) {
         // Update user balance and clear combo_daily
         user.money = (user.money || 0) + reward;
-        user.combo_daily_tasks = '[]';
         await user.save();
 
         return res.json({ message: 'Daily check successful', reward });
