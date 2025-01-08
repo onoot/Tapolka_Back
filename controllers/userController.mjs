@@ -589,25 +589,15 @@ export const buyCard = async (req, res) => {
     if (!dailyCard) {
       return res.status(404).json({ message: 'Daily card not found' });
     }
-    
-    //Проверяем, заблокирована ли карточка и какая она по счету
-     if (dailyCard.isLock) {
-      // Узнаем общее количество карточек и номер текущей карточки
-      const allCards = await Daily.findAll({ order: [['id', 'ASC']] });
-      const cardIndex = allCards.findIndex((card) => card.id === daily);
 
-      if (cardIndex === -1) {
-        return res.status(400).json({ message: 'Card not found in the list' });
-      }
+    // Логика проверки разблокировки карточек
+    const invitedCount = user?.Invited ? user.Invited.split(',').length : 0;
+    const isUnlocked = allCards.map((card, index) => index < 6 || index < invitedCount + 6);
 
-      // Подсчитываем количество разблокированных карточек (по приглашениям)
-      const invitedCount = user.Invited ? user.Invited.split(',').length : 0;
-
-      if (invitedCount <= cardIndex) {
-        return res.status(400).json({ message: 'Daily card is locked' });
-      }
+    const cardIndex = allCards.findIndex((card) => card.id === daily);
+    if (!isUnlocked[cardIndex]) {
+      return res.status(400).json({ message: 'Daily card is locked' });
     }
-
 
     // Ищем задачу
     let taskFound = currentDailyTasks.find((task) => task.id === dayliy);
