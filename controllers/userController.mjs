@@ -797,7 +797,6 @@ export const wallet = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
 export const checkDaily = async (req, res) => {
   try {
     // Проверка токена авторизации
@@ -826,10 +825,10 @@ export const checkDaily = async (req, res) => {
     }
 
     const winCombo = user?.win_combo || { status: false, date: null };
-    const today = Date.now(); 
+    const today = new Date().setHours(0, 0, 0, 0); // Текущая дата без времени
 
     // Проверка: победил ли пользователь сегодня
-    if (winCombo.status==true && winCombo.date < today) {
+    if (winCombo.status && new Date(winCombo.date).setHours(0, 0, 0, 0) === today) {
       // Проверяем валидность задач
       const tasks = JSON.parse(user?.dataValues?.combo_daily_tasks || '[]');
       for (const taskId of tasks) {
@@ -849,9 +848,9 @@ export const checkDaily = async (req, res) => {
     let reward = 0;
 
     for (const taskId of tasks) {
-      const isValid = await isValidCard(taskId);
+      const isValid = await isValidCard({ id: taskId });
       if (isValid) {
-        const daily = await DailyCombo.findOne({ where: { id: taskId?.id } });
+        const daily = await DailyCombo.findOne({ where: { id: taskId } });
         if (!daily) continue;
 
         correctCardsCount++;
