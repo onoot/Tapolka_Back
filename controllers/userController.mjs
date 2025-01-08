@@ -466,7 +466,7 @@ export const getMineItems = async (req, res) => {
 
     // Обновление задач
     const updatedTasks = tasks.map(task => {
-      const taskCopy = { ...task.dataValues }; // Создаем копию задачи
+      const taskCopy = { ...task.dataValues };
 
       const upgradedTask = upgradedTasks.find(ut => ut.id === task.id);
 
@@ -477,7 +477,8 @@ export const getMineItems = async (req, res) => {
       return taskCopy;
     });
 
-    res.json({updatedTasks: updatedTasks, unlock:user?.Invited?.length});
+    const count = user?.Invited?.split(',').length
+    res.json({updatedTasks: updatedTasks, unlock: count});
   } catch (error) {
     console.error('Error getting task list:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -593,7 +594,7 @@ export const buyCard = async (req, res) => {
      if (dailyCard.isLock) {
       // Узнаем общее количество карточек и номер текущей карточки
       const allCards = await Daily.findAll({ order: [['id', 'ASC']] });
-      const cardIndex = allCards.findIndex((card) => card.id === dailyId);
+      const cardIndex = allCards.findIndex((card) => card.id === daily);
 
       if (cardIndex === -1) {
         return res.status(400).json({ message: 'Card not found in the list' });
