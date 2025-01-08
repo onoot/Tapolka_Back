@@ -812,7 +812,7 @@ export const checkDaily = async (req, res) => {
     }
 
     // Извлечение userId из тела запроса
-    const { userId } = req.body;
+    const { userId, daily } = req.body;
 
     if (!userId) {
       return res.status(400).json({ message: 'Missing user ID in request body' });
@@ -829,11 +829,11 @@ export const checkDaily = async (req, res) => {
 
     if (winCombo?.status) {
       // развернеите массивв  обратную сторону перед парсингом
-      const tasks = JSON.parse(user?.dataValues?.combo_daily_tasks || '[]');
+      const tasks = daily.reverse();
       for (const taskId of tasks) {
         const isValid = await isValidCard( taskId );
         if (isValid) {
-          const daily = await DailyCombo.findOne({ where: { id: taskId } });
+          const daily = await DailyCombo.findOne({ where: taskId });
           if (daily && daily?.Data > today) {
             return res.status(100).json({ message: 'Daily check successful' });
           }
