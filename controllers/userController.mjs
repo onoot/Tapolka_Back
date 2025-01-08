@@ -797,7 +797,6 @@ export const wallet = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
 export const checkDaily = async (req, res) => {
   try {
     // Проверка токена авторизации
@@ -812,8 +811,8 @@ export const checkDaily = async (req, res) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    // Извлечение userId и daily из тела запроса
-    const { userId, daily } = req.body;
+    // Извлечение userId из тела запроса
+    const { userId } = req.body;
 
     if (!userId) {
       return res.status(400).json({ message: 'Missing user ID in request body' });
@@ -831,11 +830,12 @@ export const checkDaily = async (req, res) => {
     // Проверка: победил ли пользователь сегодня
     if (winCombo.status && new Date(winCombo.date).setHours(0, 0, 0, 0) === today) {
       // Проверяем валидность задач
-      for (const taskId of daily) {
+      const tasks = JSON.parse(user?.dataValues?.combo_daily_tasks || '[]');
+      for (const taskId of tasks) {
         const isValid = await isValidCard({ id: taskId });
         if (isValid) {
           const daily = await DailyCombo.findOne({ where: { id: taskId } });
-          if (daily?.dataValues?.Data >= today) {
+          if (daily && new Date(daily?.Data).setHours(0, 0, 0, 0) === today) {
             return res.status(100).json({ message: 'Daily check successful' });
           }
         }
@@ -860,12 +860,12 @@ export const checkDaily = async (req, res) => {
         }
       }
 
-      // Если валидны 3 карты, начисляем награду
+      // Если валидны 3 карты, фиксируем победу и начисляем награду
       if (correctCardsCount === 3) {
         user.money = (user.money || 0) + reward;
         user.win_combo = {
           status: true,
-          date: new Date(),
+          date: new Date(), // Фиксируем текущую дату
         };
         await user.save();
 
@@ -874,7 +874,10 @@ export const checkDaily = async (req, res) => {
     }
 
     // Если недостаточно валидных карт
-    return res.status(400).json({ message: 'Not enough correct cards to complete the daily task' });
+    if (correctCardsCount < 3) {
+      console.log(correctCardsCount)
+      return res.status(400).json({ message: 'Not enough correct cards to complete the daily task' });
+    }
 
   } catch (error) {
     console.error('Error checking daily:', error);
