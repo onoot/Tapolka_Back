@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
-import moment from 'moment-timezone';
+import moment, { now } from 'moment-timezone';
 import { Op } from 'sequelize';
 
 import User from '../models/User.mjs';
@@ -825,10 +825,10 @@ export const checkDaily = async (req, res) => {
     }
 
     const winCombo = user?.win_combo || { status: false, date: null };
-    const today = new Date().setHours(0, 0, 0, 0); // Текущая дата без времени
+    const today = Date.now(); 
 
     // Проверка: победил ли пользователь сегодня
-    if (winCombo.status && new Date(winCombo.date).setHours(0, 0, 0, 0) === today) {
+    if (winCombo.status==true && winCombo.date < today) {
       // Проверяем валидность задач
       const tasks = JSON.parse(user?.dataValues?.combo_daily_tasks || '[]');
       for (const taskId of tasks) {
