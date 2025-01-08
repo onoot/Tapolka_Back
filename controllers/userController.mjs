@@ -584,8 +584,8 @@ export const buyCard = async (req, res) => {
       ? user.daily_tasks
       : JSON.parse(user.daily_tasks || '[]');
 
-    // Получение карточки
-    const dailyCard = await Daily.findOne({ where: { id: dayliy } });
+    const allCards = await Daily.findAll({ order: [['id', 'ASC']] });
+    const dailyCard = allCards.find((card) => card.id === daily);
     if (!dailyCard) {
       return res.status(404).json({ message: 'Daily card not found' });
     }
