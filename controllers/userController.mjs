@@ -797,9 +797,6 @@ export const wallet = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
-
-
 export const checkDaily = async (req, res) => {
   try {
     // Проверка токена авторизации
@@ -828,22 +825,31 @@ export const checkDaily = async (req, res) => {
     }
 
     const winCombo = user?.win_combo || { status: false, date: null };
-    const today = new Date().setHours(0, 0, 0, 0); // Начало текущего дня
+    const today = Date.now();
 
-    // Проверка: победил ли пользователь сегодня
-    if (winCombo.status && new Date(winCombo.date).setHours(0, 0, 0, 0) === today) {
-      return res.status(100).json({ message: 'Daily reward already claimed today' });
+    if (winCombo?.status) {
+      // развернеите массивв  обратную сторону перед парсингом
+      const tasks = JSON.parse(user?.dataValues?.combo_daily_tasks || '[]');
+      for (const taskId of tasks) {
+        const isValid = await isValidCard( taskId );
+        if (isValid) {
+          const daily = await DailyCombo.findOne({ where: { id: taskId } });
+          if (daily && daily?.Data > today) {
+            return res.status(100).json({ message: 'Daily check successful' });
+          }
+        }
+      }
     }
 
-    // Проверяем задачи
+    // Если пользователь не побеждал сегодня, проверяем задачи
     const tasks = JSON.parse(user?.dataValues?.combo_daily_tasks || '[]');
     let correctCardsCount = 0;
     let reward = 0;
 
     for (const taskId of tasks) {
-      const isValid = await isValidCard(taskId);
+      const isValid = await isValidCard({ id: taskId });
       if (isValid) {
-        const daily = await DailyCombo.findOne({ where: { id: taskId?.id } });
+        const daily = await DailyCombo.findOne({ where: { id: taskId } });
         if (!daily) continue;
 
         correctCardsCount++;
@@ -862,7 +868,7 @@ export const checkDaily = async (req, res) => {
         };
         await user.save();
 
-        return res.status(200).json({ message: 'Daily task completed', reward });
+        return res.json({ message: 'Daily check successful', reward });
       }
     }
 
