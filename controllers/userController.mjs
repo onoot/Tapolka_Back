@@ -871,6 +871,6 @@ export const checkDaily = async (req, res) => {
     }
   } catch (error) {
     console.error('Error checking daily:', error);
-    return res.status(500).json({ message: error });
+    return res.status(500).json({ message: "Пизжец "+error });
   }
 };
