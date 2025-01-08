@@ -811,7 +811,7 @@ export const checkDaily = async (req, res) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    // Извлечение userId из тела запроса
+    // Извлечение userId и массив daily (содержит id: id) из тела запроса
     const { userId, daily } = req.body;
 
     if (!userId) {
@@ -829,8 +829,7 @@ export const checkDaily = async (req, res) => {
 
     if (winCombo?.status) {
       // развернеите массивв  обратную сторону перед парсингом
-      const tasks = daily.reverse();
-      for (const taskId of tasks) {
+      for (const taskId of daily) {
         const isValid = await isValidCard( taskId );
         if (isValid) {
           const daily = await DailyCombo.findOne({ where: taskId });
@@ -841,12 +840,10 @@ export const checkDaily = async (req, res) => {
       }
     }
 
-    // Если пользователь не побеждал сегодня, проверяем задачи
-    const tasks = JSON.parse(user?.dataValues?.combo_daily_tasks || '[]');
     let correctCardsCount = 0;
     let reward = 0;
 
-    for (const taskId of tasks) {
+    for (const taskId of daily) {
       const isValid = await isValidCard({ id: taskId });
       if (isValid) {
         const daily = await DailyCombo.findOne({ where: { id: taskId } });
