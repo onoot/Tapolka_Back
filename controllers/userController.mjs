@@ -127,6 +127,7 @@ export const login = async (req, res) => {
         reward: filteredData[0]?.reward || null,
         date: filteredData[0]?.Data || null
       },
+      wallet: existingUser?.wallet
     });
   } catch (e) {
     console.error(e);
