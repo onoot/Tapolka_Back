@@ -836,7 +836,7 @@ export const checkDaily = async (req, res) => {
         if (isValid) {
           const daily = await DailyCombo.findOne({ where: taskId });
           if (daily && daily?.Data > today) {
-            return res.status(201).json({ message: 'successful' });
+            return res.status(204).send(); 
           }
         }
       }
