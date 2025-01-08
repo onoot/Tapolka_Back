@@ -875,7 +875,7 @@ export const checkDaily = async (req, res) => {
 
     // Если недостаточно валидных карт
     if (correctCardsCount < 3) {
-      console.log(correctCardsCount)
+      console.log(tasks)
       return res.status(400).json({ message: 'Not enough correct cards to complete the daily task' });
     }
 
