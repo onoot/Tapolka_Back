@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
-import moment, { now } from 'moment-timezone';
+import moment from 'moment-timezone';
 import { Op } from 'sequelize';
 
 import User from '../models/User.mjs';
@@ -797,6 +797,7 @@ export const wallet = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 export const checkDaily = async (req, res) => {
   try {
     // Проверка токена авторизации
