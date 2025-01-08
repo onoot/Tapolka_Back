@@ -848,9 +848,9 @@ export const checkDaily = async (req, res) => {
     let reward = 0;
 
     for (const taskId of tasks) {
-      const isValid = await isValidCard({ id: taskId });
+      const isValid = await isValidCard(taskId);
       if (isValid) {
-        const daily = await DailyCombo.findOne({ where: { id: taskId } });
+        const daily = await DailyCombo.findOne({ where: { id: taskId?.id } });
         if (!daily) continue;
 
         correctCardsCount++;
