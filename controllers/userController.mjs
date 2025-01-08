@@ -798,6 +798,7 @@ export const wallet = async (req, res) => {
   }
 };
 
+
 export const checkDaily = async (req, res) => {
   try {
     // Проверка токена авторизации
@@ -838,10 +839,10 @@ export const checkDaily = async (req, res) => {
     let correctCardsCount = 0;
     let reward = 0;
 
-    for (const taskId of tasks) {
-      const isValid = await isValidCard(taskId);
+    for (const task of tasks) {
+      const isValid = await isValidCard(task); // Используем объект `task` как есть
       if (isValid) {
-        const daily = await DailyCombo.findOne({ where: { id: taskId?.id } });
+        const daily = await DailyCombo.findOne({ where: { id: task.id } });
         if (!daily) continue;
 
         correctCardsCount++;
@@ -868,9 +869,8 @@ export const checkDaily = async (req, res) => {
     if (correctCardsCount < 3) {
       return res.status(400).json({ message: 'Not enough correct cards to complete the daily task' });
     }
-
   } catch (error) {
     console.error('Error checking daily:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: error });
   }
 };
