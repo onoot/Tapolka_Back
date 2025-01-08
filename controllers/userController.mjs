@@ -848,9 +848,9 @@ export const checkDaily = async (req, res) => {
     let reward = 0;
 
     for (const taskId of tasks) {
-      const isValid = await isValidCard({ id: taskId });
+      const isValid = await isValidCard(taskId);
       if (isValid) {
-        const daily = await DailyCombo.findOne({ where: { id: taskId } });
+        const daily = await DailyCombo.findOne({ where: { id: taskId?.id } });
         if (!daily) continue;
 
         correctCardsCount++;
@@ -875,7 +875,6 @@ export const checkDaily = async (req, res) => {
 
     // Если недостаточно валидных карт
     if (correctCardsCount < 3) {
-      console.log(tasks)
       return res.status(400).json({ message: 'Not enough correct cards to complete the daily task' });
     }
 
