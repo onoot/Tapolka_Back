@@ -830,7 +830,7 @@ export const checkDaily = async (req, res) => {
 
     // Проверка: победил ли пользователь сегодня
     if (winCombo.status && new Date(winCombo.date).setHours(0, 0, 0, 0) === today) {
-      return res.status(400).json({ message: 'Daily reward already claimed today' });
+      return res.status(100).json({ message: 'Daily reward already claimed today' });
     }
 
     // Проверяем задачи
@@ -841,7 +841,7 @@ export const checkDaily = async (req, res) => {
     for (const taskId of tasks) {
       const isValid = await isValidCard(taskId);
       if (isValid) {
-        const daily = await DailyCombo.findOne({ where: { id: taskId } });
+        const daily = await DailyCombo.findOne({ where: { id: taskId?.id } });
         if (!daily) continue;
 
         correctCardsCount++;
