@@ -797,6 +797,8 @@ export const wallet = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
 export const checkDaily = async (req, res) => {
   try {
     // Проверка токена авторизации
@@ -834,7 +836,7 @@ export const checkDaily = async (req, res) => {
         if (isValid) {
           const daily = await DailyCombo.findOne({ where: taskId });
           if (daily && daily?.Data > today) {
-            return res.status(100).json({ message: 'Daily check successful' });
+            return res.status(200).json({ message: 'Daily check successful' });
           }
         }
       }
