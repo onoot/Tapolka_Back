@@ -797,6 +797,7 @@ export const wallet = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 export const checkDaily = async (req, res) => {
   try {
     // Проверка токена авторизации
@@ -811,9 +812,8 @@ export const checkDaily = async (req, res) => {
       return res.status(401).json({ message: 'Unauthorized' });
     }
 
-    // Извлечение userId из тела запроса
-    const { userId } = req.body;
-    const { daily } = req.body;
+    // Извлечение userId и daily из тела запроса
+    const { userId, daily } = req.body;
 
     if (!userId) {
       return res.status(400).json({ message: 'Missing user ID in request body' });
@@ -824,52 +824,58 @@ export const checkDaily = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    // Логика обработки combo_daily_tasks
-    const newArray = JSON.parse(user?.dataValues?.combo_daily_tasks || '[]');
-    const uniqueTasks = Array.from(new Set(newArray.map(task => task.id))); 
-
-    let correctCardsCount = 0;
-    let reward = 0;
 
     const winCombo = user?.win_combo || { status: false, date: null };
-    if (winCombo?.status === true) {
-      for (const taskId of uniqueTasks) {
+    const today = new Date().setHours(0, 0, 0, 0); // Текущая дата без времени
+
+    // Проверка: победил ли пользователь сегодня
+    if (winCombo.status && new Date(winCombo.date).setHours(0, 0, 0, 0) === today) {
+      // Проверяем валидность задач
+      for (const taskId of daily) {
         const isValid = await isValidCard({ id: taskId });
-        if (!isValid)
-          continue;
-        const daily = await DailyCombo.findOne({ where: { id: taskId } });
-        if (winCombo.date >= daily?.dataValues?.Data) {
-          return res.status(100).json({ message: 'Daily check successful' });
+        if (isValid) {
+          const daily = await DailyCombo.findOne({ where: { id: taskId } });
+          if (daily?.dataValues?.Data >= today) {
+            return res.status(100).json({ message: 'Daily check successful' });
+          }
         }
       }
     }
-    for (const taskId of uniqueTasks) {
+
+    // Если пользователь не побеждал сегодня, проверяем задачи
+    const tasks = JSON.parse(user?.dataValues?.combo_daily_tasks || '[]');
+    let correctCardsCount = 0;
+    let reward = 0;
+
+    for (const taskId of tasks) {
       const isValid = await isValidCard({ id: taskId });
       if (isValid) {
+        const daily = await DailyCombo.findOne({ where: { id: taskId } });
+        if (!daily) continue;
+
         correctCardsCount++;
         if (correctCardsCount === 1) {
           // Получаем награду для первой валидной карты
-          const daily = await DailyCombo.findOne({ where: { id: taskId } });
           reward = daily?.reward || 0;
         }
       }
+
+      // Если валидны 3 карты, начисляем награду
       if (correctCardsCount === 3) {
-        // Обновляем баланс пользователя и очищаем combo_daily_tasks
         user.money = (user.money || 0) + reward;
         user.win_combo = {
           status: true,
-          date: Date.now(),
+          date: new Date(),
         };
         await user.save();
 
         return res.json({ message: 'Daily check successful', reward });
       }
     }
-    
 
-    if (correctCardsCount < 3) {
-      return res.status(400).json({ message: 'Not enough correct cards to complete the daily task' });
-    }
+    // Если недостаточно валидных карт
+    return res.status(400).json({ message: 'Not enough correct cards to complete the daily task' });
+
   } catch (error) {
     console.error('Error checking daily:', error);
     return res.status(500).json({ message: 'Internal server error' });
