@@ -101,6 +101,11 @@ const User = sequelize.define('User', {
     type: DataTypes.JSON,
     allowNull: false,
     defaultValue: [],
+  }, 
+  boost: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    defaultValue: [],
   },
   roleId: {
     type: DataTypes.INTEGER,
