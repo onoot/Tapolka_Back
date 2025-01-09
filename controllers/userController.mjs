@@ -142,8 +142,8 @@ const checkAndRegenerateEnergy = async (user) => {
   const secondsSinceLastUpdate = Math.floor((now - lastUpdate) / 1000);
 
   // Рассчитываем прирост энергии
-  const regeneratedEnergy = Math.min(user.energy + secondsSinceLastUpdate, 1600);
-  const newEnergy = Math.min(regeneratedEnergy, 1600);
+  const regeneratedEnergy = Math.min(user.energy + secondsSinceLastUpdate, 500);
+  const newEnergy = Math.min(regeneratedEnergy, 500);
 
   // Обновляем время последнего обновления, если энергия изменилась
   if (newEnergy !== user.energy) {
