@@ -646,7 +646,7 @@ export const buyCard = async (req, res) => {
       user.daily_tasks = JSON.stringify(currentDailyTasks);
 
       // Проверяем, есть ли уже значение в combo_daily_tasks
-      let comboDailyTasks = user.combo_daily_tasks ? JSON.parse(user.combo_daily_tasks) : [];
+      let comboDailyTasks = user?.combo_daily_tasks!=[] ? JSON.parse(user.combo_daily_tasks) : [];
 
       // Убеждаемся, что это массив
       if (!Array.isArray(comboDailyTasks)) {
