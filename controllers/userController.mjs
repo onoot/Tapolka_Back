@@ -942,8 +942,8 @@ export const boost = async (req, res) => {
 
     console.log(userBoosts)
     // Обработка логики для fullEnergy
-    if (boost === 'full') {
-      const boostData = userBoosts[boost];
+    if (boost === 'fullEnergi') {
+      const boostData = userBoosts['fullEnergi'];
       const now = Date.now();
 
       if (boostData?.count > 0) {
