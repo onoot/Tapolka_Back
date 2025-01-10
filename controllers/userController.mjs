@@ -940,6 +940,7 @@ export const boost = async (req, res) => {
     const userBoosts = user?.boost;
     const limitEnergy = user?.boost?.energiLimit?.level == 1 ? 0 : user?.boost?.energiLimit?.level * 100;
 
+    console.log(userBoosts)
     // Обработка логики для fullEnergy
     if (boost === 'full') {
       const boostData = userBoosts[boost];
