@@ -66,6 +66,21 @@ export const login = async (req, res) => {
         lastEnergyUpdate: new Date(),
         combo_daily_tasks: user?.combo_daily_tasks || [],
         key: 0,
+        boost:{
+          fullEnergi: {
+            count: 3,
+            max_count: 3,
+            dateLastUpdate: new Date().toISOString(),
+          },
+          multiplier: {
+            level: 1,
+            max_level: 100,
+          },
+          energiLimit: {
+            level: 1,
+            max_level: 100,
+          }
+        }
       });
     }
     const time = getTime();
@@ -127,7 +142,8 @@ export const login = async (req, res) => {
         reward: filteredData[0]?.reward || null,
         date: filteredData[0]?.Data || null
       },
-      wallet: existingUser?.wallet
+      wallet: existingUser?.wallet,
+      boost: existingUser?.boost
     });
   } catch (e) {
     console.error(e);
