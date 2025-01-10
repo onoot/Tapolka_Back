@@ -942,6 +942,7 @@ export const boost = async (req, res) => {
     if (!Object.keys(userBoosts).includes(boost)) {
       return res.status(400).json({ message: `Boost "${boost}" does not exist for this user` });
     }
+    console.log(boost)
 
     // Обработка логики для fullEnergy
     if (boost === 'full') {
