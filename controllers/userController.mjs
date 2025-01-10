@@ -83,7 +83,7 @@ export const login = async (req, res) => {
         }
       });
     }
-    if(!existingUser?.boost){
+    if (!existingUser.boost) {
       existingUser.boost = {
         fullEnergi: {
           count: 3,
@@ -97,11 +97,11 @@ export const login = async (req, res) => {
         energiLimit: {
           level: 1,
           max_level: 100,
-        }
-      }
-      user?.boost=existingUser.boost
-      user?.save()
+        },
+      };
+      await existingUser.save(); 
     }
+    
     const time = getTime();
     const Rewarw_Data = await DailyCombo.findAll({
       limit: 10, // Ограничиваем количество записей
