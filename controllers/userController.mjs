@@ -612,6 +612,7 @@ export const buyCard = async (req, res) => {
     const totalPrice = dailyCard.price * multip * targetLevel;
 
     // Проверка баланса пользователя
+    console.log(user.money,totalPrice)
     if (user.money < totalPrice) {
       return res.status(400).json({ message: 'Insufficient balance' });
     }
