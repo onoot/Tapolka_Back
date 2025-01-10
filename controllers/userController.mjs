@@ -612,7 +612,6 @@ export const buyCard = async (req, res) => {
     const totalPrice = dailyCard.price * multip * targetLevel;
 
     // Проверка баланса пользователя
-    console.log(user.money,totalPrice)
     if (user.money < totalPrice) {
       return res.status(400).json({ message: 'Insufficient balance' });
     }
@@ -628,7 +627,6 @@ export const buyCard = async (req, res) => {
         }
       });
     }
-
     // Добавляем в combo_daily_tasks, если угадано
     const Tru = await isValidCard({ id: dayliy });
     if (Tru) {
@@ -645,9 +643,9 @@ export const buyCard = async (req, res) => {
       currentComboTasks.push(comboTask);
       user.daily_tasks = JSON.stringify(currentDailyTasks);
 
-      console.log(user?.combo_daily_tasks)
       // Проверяем, есть ли уже значение в combo_daily_tasks
-      let comboDailyTasks = user?.combo_daily_tasks?.length>0 ? JSON.parse(user.combo_daily_tasks) : [];
+      // let comboDailyTasks = user?.combo_daily_tasks?.length>0 ? JSON.parse(user.combo_daily_tasks) : [];
+      let comboDailyTasks = user?.combo_daily_tasks?.length>0 ? user?.combo_daily_tasks : [];
 
       // Убеждаемся, что это массив
       if (!Array.isArray(comboDailyTasks)) {
