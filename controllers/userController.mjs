@@ -83,6 +83,25 @@ export const login = async (req, res) => {
         }
       });
     }
+    if(!existingUser?.boost){
+      existingUser.boost = {
+        fullEnergi: {
+          count: 3,
+          max_count: 3,
+          dateLastUpdate: new Date().toISOString(),
+        },
+        multiplier: {
+          level: 1,
+          max_level: 100,
+        },
+        energiLimit: {
+          level: 1,
+          max_level: 100,
+        }
+      }
+      user?.boost=existingUser.boost
+      user?.save()
+    }
     const time = getTime();
     const Rewarw_Data = await DailyCombo.findAll({
       limit: 10, // Ограничиваем количество записей
