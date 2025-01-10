@@ -937,7 +937,7 @@ export const boost = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const userBoosts = user.boost || {};
+    const userBoosts = user?.boost;
     const limitEnergy = user?.boost?.energiLimit?.level == 1 ? 0 : user?.boost?.energiLimit?.level * 100;
 
     // Обработка логики для fullEnergy
@@ -945,7 +945,7 @@ export const boost = async (req, res) => {
       const boostData = userBoosts[boost];
       const now = Date.now();
 
-      if (boostData.count > 0) {
+      if (boostData?.count > 0) {
         // Уменьшаем count и обновляем энергию
         boostData.count -= 1;
         user.energy = 500 + limitEnergy;
