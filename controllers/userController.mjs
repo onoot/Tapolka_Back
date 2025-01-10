@@ -1005,6 +1005,8 @@ export const boost = async (req, res) => {
       } else {
         return res.status(400).json({ message: 'Not enough money to upgrade boost' });
       }
+    }else {
+      return res.status(400).json({ message: 'Invalid or missing boost in request' });
     }
   } catch (e) {
     console.error(e);
