@@ -66,7 +66,7 @@ export const login = async (req, res) => {
         lastEnergyUpdate: new Date(),
         combo_daily_tasks: user?.combo_daily_tasks || [],
         key: 0,
-        boost:{
+        boost: {
           fullEnergi: {
             count: 3,
             max_count: 3,
@@ -99,9 +99,9 @@ export const login = async (req, res) => {
           max_level: 100,
         },
       };
-      await existingUser.save(); 
+      await existingUser.save();
     }
-    
+
     const time = getTime();
     const Rewarw_Data = await DailyCombo.findAll({
       limit: 10, // Ограничиваем количество записей
@@ -175,11 +175,11 @@ const checkAndRegenerateEnergy = async (user) => {
   const now = new Date();
   const lastUpdate = user.lastEnergyUpdate ? new Date(user.lastEnergyUpdate) : now;
   const secondsSinceLastUpdate = Math.floor((now - lastUpdate) / 1000);
-  const limitEnergy = user?.boost?.energiLimit?.level==1 ? 0 : user?.boost?.energiLimit?.level*100;
+  const limitEnergy = user?.boost?.energiLimit?.level == 1 ? 0 : user?.boost?.energiLimit?.level * 100;
 
   // Рассчитываем прирост энергии
-  const regeneratedEnergy = Math.min(user.energy + secondsSinceLastUpdate, 500+limitEnergy);
-  const newEnergy = Math.min(regeneratedEnergy, 500+limitEnergy);
+  const regeneratedEnergy = Math.min(user.energy + secondsSinceLastUpdate, 500 + limitEnergy);
+  const newEnergy = Math.min(regeneratedEnergy, 500 + limitEnergy);
 
   // Обновляем время последнего обновления, если энергия изменилась
   if (newEnergy !== user.energy) {
@@ -216,7 +216,7 @@ export const addCoins = async (req, res) => {
     }
 
     await User.sequelize.transaction(async (transaction) => {
-      const newCoinBalance = user.money + (clicks*user?.boost?.multiplier?.level);
+      const newCoinBalance = user.money + (clicks * user?.boost?.multiplier?.level);
       await user.update(
         {
           money: newCoinBalance,
@@ -515,7 +515,7 @@ export const getMineItems = async (req, res) => {
     });
 
     const count = user?.Invited?.split(',').length
-    res.json({updatedTasks: updatedTasks, unlock: count});
+    res.json({ updatedTasks: updatedTasks, unlock: count });
   } catch (error) {
     console.error('Error getting task list:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -681,7 +681,7 @@ export const buyCard = async (req, res) => {
 
       // Проверяем, есть ли уже значение в combo_daily_tasks
       // let comboDailyTasks = user?.combo_daily_tasks?.length>0 ? JSON.parse(user.combo_daily_tasks) : [];
-      let comboDailyTasks = user?.combo_daily_tasks?.length>0 ? user?.combo_daily_tasks : [];
+      let comboDailyTasks = user?.combo_daily_tasks?.length > 0 ? user?.combo_daily_tasks : [];
 
       // Убеждаемся, что это массив
       if (!Array.isArray(comboDailyTasks)) {
@@ -860,11 +860,11 @@ export const checkDaily = async (req, res) => {
     if (winCombo?.status) {
       // развернеите массивв  обратную сторону перед парсингом
       for (const taskId of daily) {
-        const isValid = await isValidCard( taskId );
+        const isValid = await isValidCard(taskId);
         if (isValid) {
           const daily = await DailyCombo.findOne({ where: taskId });
           if (daily && daily?.Data > today) {
-            return res.status(204).send(); 
+            return res.status(204).send();
           }
         }
       }
@@ -924,11 +924,11 @@ export const boost = async (req, res) => {
 
     const { id } = req.params;
     const { boost } = req.body; // Название буста
-    if (!id) {
-      return res.status(400).json({ message: 'Missing user ID in request body' });
+    if (!id || isNaN(Number(id))) {
+      return res.status(400).json({ message: 'Invalid or missing user ID in request' });
     }
-    if (!boost) {
-      return res.status(400).json({ message: 'Missing boost in request body' });
+    if (!boost || typeof boost !== 'string') {
+      return res.status(400).json({ message: 'Invalid or missing boost in request' });
     }
 
     const user = await User.findOne({ where: { id } });
@@ -937,21 +937,21 @@ export const boost = async (req, res) => {
     }
 
     const userBoosts = user.boost || {};
-    const limitEnergy = user?.boost?.energiLimit?.level==1 ? 0 : user?.boost?.energiLimit?.level*100;
+    const limitEnergy = user?.boost?.energiLimit?.level == 1 ? 0 : user?.boost?.energiLimit?.level * 100;
 
     if (!Object.keys(userBoosts).includes(boost)) {
       return res.status(400).json({ message: `Boost "${boost}" does not exist for this user` });
     }
 
     // Обработка логики для fullEnergy
-    if (boost === 'fullEnergy') {
+    if (boost === 'full') {
       const boostData = userBoosts[boost];
       const now = Date.now();
 
       if (boostData.count > 0) {
         // Уменьшаем count и обновляем энергию
         boostData.count -= 1;
-        user.energy = 500+limitEnergy;
+        user.energy = 500 + limitEnergy;
         await user.save();
         return res.json({ message: 'Energy replenished and boost used' });
       } else {
@@ -968,11 +968,31 @@ export const boost = async (req, res) => {
           return res.status(400).json({ message: 'Boost cannot be used yet' });
         }
       }
-    } else {
+    } else if (boost == 'Multitap') {
       // Обработка других бустов
-      const boostData = userBoosts[boost];
+      const boostData = userBoosts['multiplier'];
       const targetLevel = boostData.level + 1;
-      const k = targetLevel === 2 ? 0.5 : 2; 
+      const k = targetLevel === 2 ? 0.5 : 2;
+      const cost = 1000 * targetLevel * k;
+
+      if (user.money >= cost) {
+        if (boostData.level < boostData.max_level) {
+          // Обновляем уровень буста
+          boostData.level += 1;
+          user.money -= cost;
+          await user.save();
+          return res.json({ message: `Boost "${boost}" upgraded to level ${boostData.level}` });
+        } else {
+          return res.status(400).json({ message: `Boost "${boost}" is already at max level` });
+        }
+      } else {
+        return res.status(400).json({ message: 'Not enough money to upgrade boost' });
+      }
+    } else if (boost == 'Energy limit') {
+      // Обработка других бустов
+      const boostData = userBoosts['energiLimit'];
+      const targetLevel = boostData.level + 1;
+      const k = targetLevel === 2 ? 0.5 : 2;
       const cost = 1000 * targetLevel * k;
 
       if (user.money >= cost) {
