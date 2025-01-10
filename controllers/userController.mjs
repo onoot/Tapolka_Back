@@ -929,7 +929,6 @@ export const boost = async (req, res) => {
       return res.status(400).json({ message: 'Invalid or missing user ID in request' });
     }
     if (!boost || typeof boost !== 'string') {
-      console.log(boost, typeof boost)
       return res.status(400).json({ message: 'Invalid or missing boost in request' });
     }
 
@@ -940,11 +939,6 @@ export const boost = async (req, res) => {
 
     const userBoosts = user.boost || {};
     const limitEnergy = user?.boost?.energiLimit?.level == 1 ? 0 : user?.boost?.energiLimit?.level * 100;
-
-    if (!Object.keys(userBoosts).includes(boost)) {
-      return res.status(400).json({ message: `Boost "${boost}" does not exist for this user` });
-    }
-    console.log(boost)
 
     // Обработка логики для fullEnergy
     if (boost === 'full') {
