@@ -927,7 +927,8 @@ export const boost = async (req, res) => {
     if (!id || isNaN(Number(id))) {
       return res.status(400).json({ message: 'Invalid or missing user ID in request' });
     }
-    if (!boost || typeof boost !== 'string') {
+    // if (!boost || typeof boost !== 'string') {
+    if (!boost) {
       return res.status(400).json({ message: 'Invalid or missing boost in request' });
     }
 
