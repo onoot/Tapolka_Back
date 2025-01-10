@@ -10,6 +10,7 @@ import Daily from '../models/Daily.mjs';
 import DailyCombo from '../models/DailyCombo.mjs';
 import { validateTelegramData } from '../meddleware/verificationTG.mjs';
 import { processReferral } from '../meddleware/checkRef.mjs';
+import { type } from 'os';
 
 dotenv.config();
 
@@ -927,8 +928,8 @@ export const boost = async (req, res) => {
     if (!id || isNaN(Number(id))) {
       return res.status(400).json({ message: 'Invalid or missing user ID in request' });
     }
-    // if (!boost || typeof boost !== 'string') {
-    if (!boost) {
+    if (!boost || typeof boost !== 'string') {
+      console.log(boost, typeof boost)
       return res.status(400).json({ message: 'Invalid or missing boost in request' });
     }
 
