@@ -606,7 +606,7 @@ export const buyCard = async (req, res) => {
     const currentLevel = taskFound ? taskFound.levels : 0;
     const targetLevel = currentLevel < 10 ? currentLevel + 1 : 10;
     // Получаем множитель из карточки
-    const multip = currentLevel == null ? 0.5 : dailyCard.multip || 1;
+    const multip = currentLevel == 0 ? 0.5 : dailyCard.multip || 1;
 
     // Рассчитываем итоговую стоимость
     const totalPrice = dailyCard.price * multip * targetLevel;
