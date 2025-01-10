@@ -995,8 +995,8 @@ export const boost = async (req, res) => {
     } else if (boost == 'Energy limit') {
       // Обработка других бустов
       const boostData = userBoosts['energiLimit'];
-      const targetLevel = boostData.level + 1;
-      const k = targetLevel === 2 ? 0.5 : 2;
+      const targetLevel = boostData?.level + 1;
+      const k = targetLevel === 1 ? 0.5 : 2;
       const cost = 1000 * targetLevel * k;
 
       if (user.money >= cost) {
