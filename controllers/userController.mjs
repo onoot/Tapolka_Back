@@ -149,7 +149,7 @@ export const login = async (req, res) => {
       id: existingUser.id,
       telegramId: existingUser.telegramId,
       name: existingUser.firstName || existingUser.name,
-      role: existingUser.role.name || 'User',
+      role: existingUser?.role?.name || 'User',
       money: existingUser.money,
       totalMoney: existingUser.totalMoney,
       profit: existingUser.profit,
@@ -946,6 +946,15 @@ export const boost = async (req, res) => {
       const boostData = userBoosts['fullEnergi'];
       const now = Date.now();
 
+      if(!boostData||boostData?.count > 0) {
+        const lastUpdate = new Date(boostData.dateLastUpdate).getTime();
+        if (now - lastUpdate >= 12 * 60 * 60 * 1000) {
+          boostData.dateLastUpdate = new Date();
+          userBoosts[boost] = boostData;
+          await user.save();
+        } 
+        return res.status(400).json({message: 'Boost cannot be used yet'});
+      }
       if (boostData?.count > 0) {
         // Уменьшаем count и обновляем энергию
         boostData.count -= 1;
@@ -955,19 +964,6 @@ export const boost = async (req, res) => {
           count: boostData?.count,
           energy: newEnergy
          });
-      } else {
-        // Проверяем время последнего обновления
-        const lastUpdate = new Date(boostData.dateLastUpdate).getTime();
-        if (now - lastUpdate >= 12 * 60 * 60 * 1000) {
-          // Обновляем count до max_count и записываем дату
-          boostData.count = boostData.max_count;
-          boostData.dateLastUpdate = new Date();
-          userBoosts[boost] = boostData;
-          await user.save();
-          return res.status(400).json({message: 'Boost cannot be used yet'});
-        } else {
-          return res.status(400).json({ message: 'Boost cannot be used yet' });
-        }
       }
     } else if (boost == 'Multitap') {
       // Обработка других бустов
