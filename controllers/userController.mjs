@@ -924,7 +924,8 @@ export const boost = async (req, res) => {
     }
 
     const { id } = req.params;
-    const { boost } = req.body; // Название буста
+    const { boost } = req.body; 
+
     if (!id || isNaN(Number(id))) {
       return res.status(400).json({ message: 'Invalid or missing user ID in request' });
     }
@@ -940,6 +941,7 @@ export const boost = async (req, res) => {
     const userBoosts = user?.boost;
     const limitEnergy = user?.boost?.energiLimit?.level == 1 ? 0 : user?.boost?.energiLimit?.level * 100;
 
+    console.log(boost)
     if (boost === 'fullEnergi') {
       const boostData = userBoosts['fullEnergi'];
       console.log(boostData)
