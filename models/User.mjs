@@ -105,7 +105,21 @@ const User = sequelize.define('User', {
   boost: {
     type: DataTypes.JSON,
     allowNull: false,
-    defaultValue: [],
+    defaultValue: {
+      fullEnergi: {
+        count: 3,
+        max_count: 3,
+        dateLastUpdate: new Date().toISOString(), 
+      },
+      multiplier: {
+        level: 1,
+        max_level: 100,
+      },
+      energiLimit: {
+        level: 1,
+        max_level: 100,
+      },
+    },
   },
   roleId: {
     type: DataTypes.INTEGER,

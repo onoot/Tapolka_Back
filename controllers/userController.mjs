@@ -140,10 +140,11 @@ const checkAndRegenerateEnergy = async (user) => {
   const now = new Date();
   const lastUpdate = user.lastEnergyUpdate ? new Date(user.lastEnergyUpdate) : now;
   const secondsSinceLastUpdate = Math.floor((now - lastUpdate) / 1000);
+  const limitEnergy = user?.boost?.energiLimit?.level==1 ? 0 : user?.boost?.energiLimit?.level*100;
 
   // Рассчитываем прирост энергии
-  const regeneratedEnergy = Math.min(user.energy + secondsSinceLastUpdate, 500);
-  const newEnergy = Math.min(regeneratedEnergy, 500);
+  const regeneratedEnergy = Math.min(user.energy + secondsSinceLastUpdate, 500+limitEnergy);
+  const newEnergy = Math.min(regeneratedEnergy, 500+limitEnergy);
 
   // Обновляем время последнего обновления, если энергия изменилась
   if (newEnergy !== user.energy) {
@@ -180,7 +181,7 @@ export const addCoins = async (req, res) => {
     }
 
     await User.sequelize.transaction(async (transaction) => {
-      const newCoinBalance = user.money + clicks;
+      const newCoinBalance = user.money + (clicks*user?.boost?.multiplier?.level);
       await user.update(
         {
           money: newCoinBalance,
@@ -871,5 +872,90 @@ export const checkDaily = async (req, res) => {
   } catch (error) {
     console.error('Error checking daily:', error);
     return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const boost = async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'Missing authorization token' });
+    }
+
+    const verified = await VerifJWT(token);
+    if (!verified) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const { id } = req.params;
+    const { boost } = req.body; // Название буста
+    if (!id) {
+      return res.status(400).json({ message: 'Missing user ID in request body' });
+    }
+    if (!boost) {
+      return res.status(400).json({ message: 'Missing boost in request body' });
+    }
+
+    const user = await User.findOne({ where: { id } });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const userBoosts = user.boost || {};
+    const limitEnergy = user?.boost?.energiLimit?.level==1 ? 0 : user?.boost?.energiLimit?.level*100;
+
+    if (!Object.keys(userBoosts).includes(boost)) {
+      return res.status(400).json({ message: `Boost "${boost}" does not exist for this user` });
+    }
+
+    // Обработка логики для fullEnergy
+    if (boost === 'fullEnergy') {
+      const boostData = userBoosts[boost];
+      const now = Date.now();
+
+      if (boostData.count > 0) {
+        // Уменьшаем count и обновляем энергию
+        boostData.count -= 1;
+        user.energy = 500+limitEnergy;
+        await user.save();
+        return res.json({ message: 'Energy replenished and boost used' });
+      } else {
+        // Проверяем время последнего обновления
+        const lastUpdate = new Date(boostData.dateLastUpdate).getTime();
+        if (now - lastUpdate >= 12 * 60 * 60 * 1000) {
+          // Обновляем count до max_count и записываем дату
+          boostData.count = boostData.max_count;
+          boostData.dateLastUpdate = new Date();
+          userBoosts[boost] = boostData;
+          await user.save();
+          return res.json({ message: 'Boost replenished to max count' });
+        } else {
+          return res.status(400).json({ message: 'Boost cannot be used yet' });
+        }
+      }
+    } else {
+      // Обработка других бустов
+      const boostData = userBoosts[boost];
+      const targetLevel = boostData.level + 1;
+      const k = targetLevel === 2 ? 0.5 : 2; 
+      const cost = 1000 * targetLevel * k;
+
+      if (user.money >= cost) {
+        if (boostData.level < boostData.max_level) {
+          // Обновляем уровень буста
+          boostData.level += 1;
+          user.money -= cost;
+          await user.save();
+          return res.json({ message: `Boost "${boost}" upgraded to level ${boostData.level}` });
+        } else {
+          return res.status(400).json({ message: `Boost "${boost}" is already at max level` });
+        }
+      } else {
+        return res.status(400).json({ message: 'Not enough money to upgrade boost' });
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };

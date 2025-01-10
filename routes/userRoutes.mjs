@@ -15,7 +15,8 @@ import {
     buyCard,
     getBoard,
     wallet,
-    checkDaily
+    checkDaily,
+    boost,
 } from '../controllers/userController.mjs';
 
 const router = express.Router();
@@ -48,6 +49,9 @@ router.get('/board/:id', getBoard);
 router.post('/check-daily/', checkDaily);
 
 router.post('/wallet/:id', wallet);
+
+
+router.post('/boost/:id', boost);
 
 
 router.get('/manifest', (req, res) => {
