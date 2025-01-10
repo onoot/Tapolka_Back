@@ -961,7 +961,9 @@ export const boost = async (req, res) => {
           boostData.dateLastUpdate = new Date();
           userBoosts[boost] = boostData;
           await user.save();
-          return res.json({ message: 'Boost replenished to max count' });
+          return res.json({
+            count: boostData?.count,
+            dateLastUpdate: boostData?.dateLastUpdate});
         } else {
           return res.status(400).json({ message: 'Boost cannot be used yet' });
         }
@@ -977,9 +979,12 @@ export const boost = async (req, res) => {
         if (boostData.level < boostData.max_level) {
           // Обновляем уровень буста
           boostData.level += 1;
-          user.money -= cost;
+          const newMMoney = user.money -= cost;
           await user.save();
-          return res.json({ message: `Boost "${boost}" upgraded to level ${boostData.level}` });
+          return res.json({ 
+            money: newMMoney,
+            level: targetLevel
+           });
         } else {
           return res.status(400).json({ message: `Boost "${boost}" is already at max level` });
         }
@@ -997,9 +1002,12 @@ export const boost = async (req, res) => {
         if (boostData.level < boostData.max_level) {
           // Обновляем уровень буста
           boostData.level += 1;
-          user.money -= cost;
+          const newMMoney = user.money -= cost;
           await user.save();
-          return res.json({ message: `Boost "${boost}" upgraded to level ${boostData.level}` });
+          return res.json({
+            money: newMMoney,
+            level: targetLevel
+           });
         } else {
           return res.status(400).json({ message: `Boost "${boost}" is already at max level` });
         }
