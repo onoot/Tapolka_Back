@@ -862,11 +862,11 @@ export const checkDaily = async (req, res) => {
 
     const winCombo = user?.win_combo || { status: false, date: null };
     const today = Date.now();
+    console.log("Епта", daily)
 
     if (winCombo?.status) {
       // развернеите массивв  обратную сторону перед парсингом
       for (const taskId of daily) {
-        console.log("Епта", taskId)
         const isValid = await isValidCard(taskId);
         if (isValid) {
           const daily = await DailyCombo.findOne({ where: taskId });
