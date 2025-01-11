@@ -946,7 +946,6 @@ export const boost = async (req, res) => {
     const userBoosts = user?.boost;
     const limitEnergy = user?.boost?.energiLimit?.level == 1 ? 0 : user?.boost?.energiLimit?.level * 100;
 
-    console.log(boost)
     if (boost === 'full') {
       const boostData = userBoosts['fullEnergi'];
       if (!boostData) {
@@ -965,7 +964,7 @@ export const boost = async (req, res) => {
       }
     
       // Проверяем, доступен ли буст
-      if (boostData.count <= 0) {
+      if (boostData?.count <= 0) {
         return res.status(400).json({ message: 'Boost cannot be used yet' });
       }
     
@@ -973,14 +972,15 @@ export const boost = async (req, res) => {
       boostData.count -= 1;
       user.energy = 500 + limitEnergy;
     
-      // Обновляем весь объект `boost`
+      // Создаём обновлённый объект boost, сохраняя старые значения
       const updatedBoost = {
-        ...userBoosts,
-        fullEnergi: boostData,
+        ...userBoosts, // Сохраняем старые значения
+        fullEnergi: boostData, // Обновляем только fullEnergi
       };
     
-      // Жестко перезаписываем поле boost в базе данных
-      await user.update({ boost: updatedBoost });
+      // Перезаписываем объект boost в базе данных
+      user.boost = updatedBoost;
+      await user.save();
     
       return res.json({
         boost: updatedBoost,
