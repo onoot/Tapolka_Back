@@ -398,13 +398,13 @@ export const getTask = async (req, res) => {
 
     const { id, task } = req.body;
 
-    const user = await User.findOne({ where: { telegramId: id } });
+    const user = await User.findOne({ where: { id: id } });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const Tasks = await Task.findAll({ where: { id: task } });
-    if (!Tasks || Tasks.length === 0) {
+    const Tasks = await Task.findOne({ where: { id: task } });
+    if (!Tasks) {
       return res.status(404).json({ message: 'Task not found' });
     }
 
