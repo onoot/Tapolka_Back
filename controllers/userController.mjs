@@ -951,13 +951,7 @@ export const boost = async (req, res) => {
       const boostData = userBoosts['fullEnergi'];
       const now = Date.now();
 
-      if(!boostData||boostData?.count > 0) {
-        const lastUpdate = new Date(boostData.dateLastUpdate).getTime();
-         if (now - lastUpdate >= 12 * 60 * 60 * 1000) {
-          boostData.dateLastUpdate = new Date();
-          userBoosts[boost] = boostData;
-          await user.save();
-        } 
+      if(!boostData||boostData?.count < 0) {
         return res.status(400).json({message: 'Boost cannot be used yet'});
       }
       if (boostData?.count > 0) {
