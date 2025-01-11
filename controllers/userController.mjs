@@ -526,7 +526,6 @@ export const getMineItems = async (req, res) => {
 // Функция для проверки карточки
 const isValidCard = async (obj) => {
   try {
-    console.log(obj)
     // Получаем id из переданного объекта
     const { id } = obj;
 
@@ -867,6 +866,7 @@ export const checkDaily = async (req, res) => {
     if (winCombo?.status) {
       // развернеите массивв  обратную сторону перед парсингом
       for (const taskId of daily) {
+        console.log("Епта", taskId)
         const isValid = await isValidCard(taskId);
         if (isValid) {
           const daily = await DailyCombo.findOne({ where: taskId });
