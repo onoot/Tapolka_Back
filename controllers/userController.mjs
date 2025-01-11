@@ -526,6 +526,7 @@ export const getMineItems = async (req, res) => {
 // Функция для проверки карточки
 const isValidCard = async (obj) => {
   try {
+    console.log(obj)
     // Получаем id из переданного объекта
     const { id } = obj;
 
