@@ -949,22 +949,41 @@ export const boost = async (req, res) => {
     console.log(boost)
     if (boost === 'full') {
       const boostData = userBoosts['fullEnergi'];
+      if (!boostData) {
+        return res.status(400).json({ message: 'Boost data not found' });
+      }
+    
       const now = Date.now();
-
-      if(!boostData||boostData?.count < 0) {
-        return res.status(400).json({message: 'Boost cannot be used yet'});
+      const lastUpdate = new Date(boostData.dateLastUpdate).getTime();
+      const timeSinceLastUpdate = now - lastUpdate;
+    
+      // Проверяем, прошло ли 12 часов с последнего обновления
+      if (timeSinceLastUpdate >= 12 * 60 * 60 * 1000) {
+        // Полное восстановление счётчика до максимального значения
+        boostData.count = boostData.max_count;
+        boostData.dateLastUpdate = new Date();
       }
-      if (boostData?.count > 0) {
-        // Уменьшаем count и обновляем энергию
-        boostData.count -= 1;
-        const newEnergy = user.energy = 500 + limitEnergy;
-        await user.save();
-        return res.json({ 
-          count: boostData?.count,
-          energy: newEnergy
-         });
+    
+      // Проверяем, доступен ли буст
+      if (boostData.count <= 0) {
+        return res.status(400).json({ message: 'Boost cannot be used yet' });
       }
-    } else if (boost == 'Multitap') {
+    
+      // Уменьшаем счётчик и обновляем энергию
+      boostData.count -= 1;
+      user.energy = 500 + limitEnergy;
+    
+      // Обновляем JSON-поле boost целиком
+      user.boost = { ...userBoosts, fullEnergi: boostData };
+    
+      // Сохраняем изменения в базе данных
+      await user.save();
+    
+      return res.json({
+        count: boostData.count,
+        energy: user.energy,
+      });
+    }else if (boost == 'Multitap') {
       // Обработка других бустов
       const boostData = userBoosts['multiplier'];
       const targetLevel = boostData.level + 1;
