@@ -17,7 +17,7 @@ function getServerIpAddress() {
 
 export async function saveServerAddress(port) {
   try {
-    const serverAddress = getServerIpAddress();  // Убираем await, так как функция синхронная
+    const serverAddress = getServerIpAddress();  
     
     // Проверяем, есть ли уже запись с этим адресом
     const existingServer = await Server.findOne({ where: { address: serverAddress } });

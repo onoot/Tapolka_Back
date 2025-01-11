@@ -10,6 +10,7 @@ const Server = sequelize.define('Server', {
   address: {
     type: DataTypes.STRING,
     allowNull: false,
+    unique: true,
   },
   active: {
     type: DataTypes.BOOLEAN,
