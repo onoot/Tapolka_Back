@@ -653,49 +653,41 @@ export const buyCard = async (req, res) => {
       return res.status(400).json({ message: 'Insufficient balance' });
     }
 
-    if (!taskFound) {
-      // Если задачи нет, добавляем новую
-      currentDailyTasks.push({ id: dayliy, levels: 1 });
-    } else {
-      // Если задача уже существует, обновляем массив
-      currentDailyTasks.forEach((task) => {
-        if (task.id === dayliy) {
-          if (task.levels < 10) task.levels += 1; // Обновляем уровень
-        }
-      });
-    }
-    // Добавляем в combo_daily_tasks, если угадано
-    const Tru = await isValidCard({ id: dayliy });
     if (Tru) {
       const comboTask = {
         id: dayliy,
         reward: dailyCard.reward,
-        data: dailyCard.Data,
+        date: dailyCard.Data,
       };
-
-      const currentComboTasks = Array.isArray(user.combo_daily_tasks)
-        ? user.combo_daily_tasks
-        : JSON.parse(user.combo_daily_tasks || '[]');
-
-      currentComboTasks.push(comboTask);
-      user.daily_tasks = JSON.stringify(currentDailyTasks);
-
-      // Проверяем, есть ли уже значение в combo_daily_tasks
-      // let comboDailyTasks = user?.combo_daily_tasks?.length>0 ? JSON.parse(user.combo_daily_tasks) : [];
-      let comboDailyTasks = user?.combo_daily_tasks?.length > 0 ? user?.combo_daily_tasks : [];
-
+    
+      // Проверяем и парсим combo_daily_tasks
+      let comboDailyTasks;
+      try {
+        comboDailyTasks = Array.isArray(user.combo_daily_tasks)
+          ? user.combo_daily_tasks
+          : JSON.parse(user.combo_daily_tasks || '[]');
+      } catch (error) {
+        console.error('Error parsing combo_daily_tasks:', error);
+        comboDailyTasks = [];
+      }
+    
       // Убеждаемся, что это массив
       if (!Array.isArray(comboDailyTasks)) {
         comboDailyTasks = [];
       }
-
-      // Добавляем новый элемент
-      comboDailyTasks.push({ id: dailyCard.id, date: dailyCard.date });
-
-      // Сохраняем обновленный массив обратно в формате строки
+    
+      // Проверяем наличие элемента, чтобы избежать дублирования
+      const isDuplicate = comboDailyTasks.some((task) => task.id === dayliy);
+      if (!isDuplicate) {
+        comboDailyTasks.push(comboTask);
+      }
+    
+      // Сохраняем обновленный массив
       user.combo_daily_tasks = JSON.stringify(comboDailyTasks);
-
     }
+    
+    // Сохранение daily_tasks
+    user.daily_tasks = JSON.stringify(currentDailyTasks);
 
     // Вычитание стоимости из баланса
     user.money -= totalPrice;
@@ -948,7 +940,7 @@ export const boost = async (req, res) => {
 
       if(!boostData||boostData?.count > 0) {
         const lastUpdate = new Date(boostData.dateLastUpdate).getTime();
-        if (now - lastUpdate >= 12 * 60 * 60 * 1000) {
+         if (now - lastUpdate >= 12 * 60 * 60 * 1000) {
           boostData.dateLastUpdate = new Date();
           userBoosts[boost] = boostData;
           await user.save();
