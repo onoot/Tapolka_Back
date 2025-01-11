@@ -653,6 +653,19 @@ export const buyCard = async (req, res) => {
       return res.status(400).json({ message: 'Insufficient balance' });
     }
 
+    if (!taskFound) {
+      // Если задачи нет, добавляем новую
+      currentDailyTasks.push({ id: dayliy, levels: 1 });
+    } else {
+      // Если задача уже существует, обновляем массив
+      currentDailyTasks.forEach((task) => {
+        if (task.id === dayliy) {
+          if (task.levels < 10) task.levels += 1; // Обновляем уровень
+        }
+      });
+    }
+    // Добавляем в combo_daily_tasks, если угадано
+    const Tru = await isValidCard({ id: dayliy });
     if (Tru) {
       const comboTask = {
         id: dayliy,
