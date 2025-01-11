@@ -20,7 +20,7 @@ export async function saveServerAddress(port) {
     const serverAddress = getServerIpAddress();  
     
     // Проверяем, есть ли уже запись с этим адресом
-    const existingServer = await Server.findOne({ where: { address: serverAddress } });
+    const existingServer = await Server.findOne({ where: { address: serverAddress+`:${Port}` } });
     
     if (!existingServer) {
       // Если нет, создаем новый сервер
