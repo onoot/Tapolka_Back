@@ -1,8 +1,5 @@
-// models/Task.mjs
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.mjs';
-
-const PORT=process.env.HTTP_PORT || 5000
 
 const Task = sequelize.define('Task', {
   id: {
@@ -14,21 +11,29 @@ const Task = sequelize.define('Task', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  type:{
+  type: {
     type: DataTypes.DECIMAL,
     allowNull: false,
   },
-  link:{
+  reward: {
+    type: DataTypes.INTEGER,
+    allowNull: true, // Разрешаем null, если reward не всегда есть
+  },
+  number: {
+    type: DataTypes.INTEGER,
+    allowNull: true, // Разрешаем null, если number не всегда есть
+  },
+  link: {
     type: DataTypes.STRING,
-    allowNull: false,
-  }  ,
+    allowNull: true, // Разрешаем null, если link не всегда есть
+  },
   category: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true, // Разрешаем null, если category не всегда есть
   },
   image: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true, // Разрешаем null, если image не всегда есть
   },
 }, {
   tableName: 'tasks',
