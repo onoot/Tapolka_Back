@@ -529,6 +529,7 @@ const isValidCard = async (obj) => {
     // Получаем id из переданного объекта
     const { id } = obj;
 
+    console.log("Ебать ",id)
     // Получаем текущую дату в формате Unix (в миллисекундах)
     const currentDate = Date.now();
 
@@ -862,7 +863,6 @@ export const checkDaily = async (req, res) => {
 
     const winCombo = user?.win_combo || { status: false, date: null };
     const today = Date.now();
-    console.log("Епта", daily)
 
     if (winCombo?.status) {
       // развернеите массивв  обратную сторону перед парсингом
