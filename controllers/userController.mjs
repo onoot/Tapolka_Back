@@ -529,7 +529,6 @@ const isValidCard = async (obj) => {
     // Получаем id из переданного объекта
     const { id } = obj;
 
-    console.log("Ебать ",id)
     // Получаем текущую дату в формате Unix (в миллисекундах)
     const currentDate = Date.now();
 
@@ -881,9 +880,9 @@ export const checkDaily = async (req, res) => {
     let reward = 0;
 
     for (const taskId of daily) {
-      const isValid = await isValidCard({ id: taskId });
+      const isValid = await isValidCard(taskId);
       if (isValid) {
-        const daily = await DailyCombo.findOne({ where: { id: taskId } });
+        const daily = await DailyCombo.findOne({ where: taskId });
         if (!daily) continue;
 
         correctCardsCount++;
