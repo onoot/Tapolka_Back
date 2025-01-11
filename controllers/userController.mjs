@@ -971,11 +971,16 @@ export const boost = async (req, res) => {
       // Уменьшаем счётчик и обновляем энергию
       boostData.count -= 1;
       user.energy = 500 + limitEnergy;
+      const full = {
+        cont: boostData.count-1,
+        max_count: 3,
+        dateLastUpdate: now
+      }
     
       // Создаём обновлённый объект boost, сохраняя старые значения
       const updatedBoost = {
         ...userBoosts, // Сохраняем старые значения
-        fullEnergi: boostData, // Обновляем только fullEnergi
+        fullEnergi: full, // Обновляем только fullEnergi
       };
     
       // Перезаписываем объект boost в базе данных
