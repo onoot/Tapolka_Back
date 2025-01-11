@@ -973,14 +973,17 @@ export const boost = async (req, res) => {
       boostData.count -= 1;
       user.energy = 500 + limitEnergy;
     
-      // Обновляем JSON-поле boost целиком
-      user.boost = { ...userBoosts, fullEnergi: boostData };
+      // Обновляем весь объект `boost`
+      const updatedBoost = {
+        ...userBoosts,
+        fullEnergi: boostData,
+      };
     
-      // Сохраняем изменения в базе данных
-      await user.save();
+      // Жестко перезаписываем поле boost в базе данных
+      await user.update({ boost: updatedBoost });
     
       return res.json({
-        count: boostData.count,
+        boost: updatedBoost,
         energy: user.energy,
       });
     }else if (boost == 'Multitap') {
