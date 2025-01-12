@@ -962,18 +962,17 @@ export const boost = async (req, res) => {
     
       // Уменьшаем счётчик и обновляем энергию
       boostData.cont -= 1;
-      console.log("Чисто ты",boostData?.cont);
       if (!boostData.cont)
         boostData.cont = 0;
-      // Проверяем, прошло ли 12 часов с последнего обновления
-      if (timeSinceLastUpdate >= 12 * 60 * 60 * 1000) {
+      // Проверяем, было ли 00:00 после последнего обновления
+      if (timeSinceLastUpdate >= 86400000) {
         // Полное восстановление счётчика до максимального значения
         boostData.cont = boostData.max_count;
         boostData.dateLastUpdate = new Date();
       }
       user.energy = 500 + limitEnergy;
       const full = {
-        cont: 1,
+        cont: boostData.cont,
         max_count: 3,
         dateLastUpdate: now
       }
