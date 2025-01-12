@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import jwt from 'jsonwebtoken';
-import moment from 'moment-timezone';
+import moment, { max } from 'moment-timezone';
 import { Op } from 'sequelize';
 
 import User from '../models/User.mjs';
@@ -973,7 +973,7 @@ export const boost = async (req, res) => {
       }
       user.energy = 500 + limitEnergy;
       const full = {
-        cont: boostData.cont,
+        cont: 1,
         max_count: 3,
         dateLastUpdate: now
       }
@@ -991,6 +991,7 @@ export const boost = async (req, res) => {
       return res.json({
         boost: updatedBoost,
         energy: user.energy,
+        max_energy: 500 + limitEnergy
       });
     }else if (boost == 'Multitap') {
       // Обработка других бустов
@@ -1030,7 +1031,8 @@ export const boost = async (req, res) => {
           await user.save();
           return res.json({
             money: newMMoney,
-            level: targetLevel
+            level: targetLevel,
+            max_energy: 500 + limitEnergy
            });
         } else {
           return res.status(400).json({ message: `Boost "${boost}" is already at max level` });
