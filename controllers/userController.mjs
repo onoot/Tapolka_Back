@@ -1000,8 +1000,9 @@ export const boost = async (req, res) => {
       const cost = 1000 * targetLevel * k;
 
       if (user.money >= cost) {
-        if (boostData.level < boostData.max_level) {
+        if (boostData.level <= boostData.max_level) {
           // Обновляем уровень буста
+          console.log(boostData.level, boostData.max_level, boostData.level <= boostData.max_level)
           boostData.level += 1;
           const newMMoney = user.money -= cost;
           await user.save();
