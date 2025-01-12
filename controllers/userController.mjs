@@ -1004,21 +1004,24 @@ export const boost = async (req, res) => {
           // Обновляем уровень буста
           boostData.level += 1;
           const newMMoney = user.money -= cost;
-          await user.save();
+    
+          // const multi = {
+          //   level: targetLevel,
+          //   max_level: 100
+          // }
 
-          const multi = {
+          // // Создаём обновлённый объект boost, сохраняя старые значения
+          // const updatedBoost = {
+          //   ...userBoosts, // Сохраняем старые значения
+          //   multiplier: multi, // Обновляем только fullEnergi
+          // };
+
+          // // Перезаписываем объект boost в базе данных
+          // user.boost = updatedBoost;
+          user.boost.multiplier = {
             level: targetLevel,
             max_level: 100
-          }
-
-          // Создаём обновлённый объект boost, сохраняя старые значения
-          const updatedBoost = {
-            ...userBoosts, // Сохраняем старые значения
-            multiplier: multi, // Обновляем только fullEnergi
           };
-
-          // Перезаписываем объект boost в базе данных
-          user.boost = updatedBoost;
           await user.save();
 
           return res.json({ 
