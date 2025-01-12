@@ -962,6 +962,7 @@ export const boost = async (req, res) => {
     
       // Уменьшаем счётчик и обновляем энергию
       boostData.count -= 1;
+      console.log("Чисто ты",boostData?.count);
       if (!boostData.count)
         boostData.count = 0;
       // Проверяем, прошло ли 12 часов с последнего обновления
