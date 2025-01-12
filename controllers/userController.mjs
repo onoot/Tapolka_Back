@@ -956,27 +956,28 @@ export const boost = async (req, res) => {
       const lastUpdate = new Date(boostData.dateLastUpdate).getTime();
       const timeSinceLastUpdate = now - lastUpdate;
     
+      // Проверяем, доступен ли буст
+      if (!boostData||boostData?.count <= 0) {
+        return res.status(400).json({ message: 'Boost cannot be used yet' });
+      }
+    
+      // Уменьшаем счётчик и обновляем энергию
+      boostData.count -= 1;
+      if (!boostData.count)
+        boostData.count = 0;
       // Проверяем, прошло ли 12 часов с последнего обновления
       if (timeSinceLastUpdate >= 12 * 60 * 60 * 1000) {
         // Полное восстановление счётчика до максимального значения
         boostData.count = boostData.max_count;
         boostData.dateLastUpdate = new Date();
       }
-    
-      // Проверяем, доступен ли буст
-      if (boostData?.count <= 0) {
-        return res.status(400).json({ message: 'Boost cannot be used yet' });
-      }
-    
-      // Уменьшаем счётчик и обновляем энергию
-      boostData.count -= 1;
       user.energy = 500 + limitEnergy;
       const full = {
-        cont: boostData.count-1,
+        cont: boostData.cont,
         max_count: 3,
         dateLastUpdate: now
       }
-    
+
       // Создаём обновлённый объект boost, сохраняя старые значения
       const updatedBoost = {
         ...userBoosts, // Сохраняем старые значения
