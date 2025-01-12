@@ -1002,10 +1002,25 @@ export const boost = async (req, res) => {
       if (user.money >= cost) {
         if (boostData.level <= boostData.max_level) {
           // Обновляем уровень буста
-          console.log(boostData.level, boostData.max_level, boostData.level <= boostData.max_level)
           boostData.level += 1;
           const newMMoney = user.money -= cost;
           await user.save();
+
+          const multi = {
+            level: targetLevel,
+            max_level: 100
+          }
+
+          // Создаём обновлённый объект boost, сохраняя старые значения
+          const updatedBoost = {
+            ...userBoosts, // Сохраняем старые значения
+            multiplier: multi, // Обновляем только fullEnergi
+          };
+
+          // Перезаписываем объект boost в базе данных
+          user.boost = updatedBoost;
+          await user.save();
+
           return res.json({ 
             money: newMMoney,
             level: targetLevel
