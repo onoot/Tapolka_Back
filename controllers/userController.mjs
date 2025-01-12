@@ -956,19 +956,19 @@ export const boost = async (req, res) => {
       const timeSinceLastUpdate = now - lastUpdate;
     
       // Проверяем, доступен ли буст
-      if (!boostData||boostData?.count <= 0) {
+      if (!boostData||boostData?.cont <= 0) {
         return res.status(400).json({ message: 'Boost cannot be used yet' });
       }
     
       // Уменьшаем счётчик и обновляем энергию
-      boostData.count -= 1;
-      console.log("Чисто ты",boostData?.count);
-      if (!boostData.count)
-        boostData.count = 0;
+      boostData.cont -= 1;
+      console.log("Чисто ты",boostData?.cont);
+      if (!boostData.cont)
+        boostData.cont = 0;
       // Проверяем, прошло ли 12 часов с последнего обновления
       if (timeSinceLastUpdate >= 12 * 60 * 60 * 1000) {
         // Полное восстановление счётчика до максимального значения
-        boostData.count = boostData.max_count;
+        boostData.cont = boostData.max_count;
         boostData.dateLastUpdate = new Date();
       }
       user.energy = 500 + limitEnergy;
