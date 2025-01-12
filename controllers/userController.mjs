@@ -10,7 +10,6 @@ import Daily from '../models/Daily.mjs';
 import DailyCombo from '../models/DailyCombo.mjs';
 import { validateTelegramData } from '../meddleware/verificationTG.mjs';
 import { processReferral } from '../meddleware/checkRef.mjs';
-import { type } from 'os';
 
 dotenv.config();
 
