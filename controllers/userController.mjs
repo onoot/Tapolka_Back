@@ -996,7 +996,7 @@ export const boost = async (req, res) => {
       // Получаем данные буста
       const boostData = userBoosts['multiplier'];
       const targetLevel = boostData.level + 1;
-      const k = targetLevel === 2 ? 0.5 : 2;
+      const k = boostData.level == 1 ? 1 : 2;
       const cost = 1000 * targetLevel * k;
     
       // Проверяем деньги и уровень
@@ -1037,7 +1037,7 @@ export const boost = async (req, res) => {
       // Обработка других бустов
       const boostData = userBoosts['energiLimit'];
       const targetLevel = boostData?.level + 1;
-      const k = targetLevel === 1 ? 0.5 : 2;
+      const k = boostData.level == 1 ? 1 : 2;
       const cost = 1000 * targetLevel * k;
 
       if (user.money >= cost) {
@@ -1063,6 +1063,7 @@ export const boost = async (req, res) => {
           return res.json({
             money: newMMoney,
             level: targetLevel,
+            boost: updatedBoost,
             max_energy: 500 + limitEnergy
            });
         } else {
