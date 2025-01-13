@@ -992,32 +992,39 @@ export const boost = async (req, res) => {
         energy: user.energy,
         max_energy: 500 + limitEnergy
       });
-    }else if (boost == 'Multitap') {
-      // Обработка других бустов
+    }else if (boost === 'Multitap') {
+      // Получаем данные буста
       const boostData = userBoosts['multiplier'];
       const targetLevel = boostData.level + 1;
       const k = targetLevel === 2 ? 0.5 : 2;
       const cost = 1000 * targetLevel * k;
-
+    
+      // Проверяем деньги и уровень
       if (user.money >= cost) {
-        if (boostData.level <= boostData.max_level) {
-          // Обновляем уровень буста
-          boostData.level += 1;
-          const newMMoney = user.money -= cost;
-
+        if (boostData.level < boostData.max_level) { // < вместо <=, чтобы учесть max_level
+          // Создаём обновлённый объект multiplier
+          const updatedMultiplier = {
+            level: targetLevel,
+            max_level: boostData.max_level,
+          };
+    
+          // Создаём новый объект boost с обновлённым multiplier
           const updatedBoost = {
             ...userBoosts,
-            multiplier: { 
-              level: targetLevel, 
-              max_level: 100 
-            }
+            multiplier: updatedMultiplier,
           };
+    
+          // Присваиваем обновлённые данные пользователю
+          user.money -= cost;
           user.boost = updatedBoost;
+    
+          // Сохраняем изменения в базе данных
           await user.save();
-
+    
           return res.json({
-            money: newMMoney,
-            level: targetLevel
+            money: user.money,
+            level: targetLevel,
+            boost: updatedBoost,
           });
         } else {
           return res.status(400).json({ message: `Boost "${boost}" is already at max level` });
@@ -1025,7 +1032,7 @@ export const boost = async (req, res) => {
       } else {
         return res.status(400).json({ message: 'Not enough money to upgrade boost' });
       }
-    } else if (boost == 'Energy limit') {
+    }else if (boost == 'Energy limit') {
       // Обработка других бустов
       const boostData = userBoosts['energiLimit'];
       const targetLevel = boostData?.level + 1;
