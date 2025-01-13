@@ -1070,7 +1070,7 @@ export const boost = async (req, res) => {
           return res.status(400).json({ message: `Boost "${boost}" is already at max level` });
         }
       } else {
-        return res.status(400).json({ message: 'Not enough money to upgrade boost' });
+        return res.status(400).json({ message: 'Not enough money to upgrade boost '+user.money+' '+cost });
       }
     }else {
       return res.status(400).json({ message: 'Invalid or missing boost in request' });
