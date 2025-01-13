@@ -1025,6 +1025,7 @@ export const boost = async (req, res) => {
             money: user.money,
             level: targetLevel,
             boost: updatedBoost,
+            max_energy: 500 + limitEnergy
           });
         } else {
           return res.status(400).json({ message: `Boost "${boost}" is already at max level` });
@@ -1042,8 +1043,22 @@ export const boost = async (req, res) => {
       if (user.money >= cost) {
         if (boostData.level < boostData.max_level) {
           // Обновляем уровень буста
-          boostData.level += 1;
+          const updatedEnergiLimit = {
+            level: targetLevel,
+            max_level: boostData.max_level,
+            max_energy: 500 + limitEnergy
+          };
+    
+          // Создаём новый объект boost с обновлённым multiplier
+          const updatedBoost = {
+            ...userBoosts,
+            energiLimit: updatedEnergiLimit,
+          };
+    
+          // Присваиваем обновлённые данные пользователю
           const newMMoney = user.money -= cost;
+          user.boost = updatedBoost;
+
           await user.save();
           return res.json({
             money: newMMoney,
