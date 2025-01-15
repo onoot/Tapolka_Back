@@ -459,7 +459,9 @@ export const addTaskToUser = async (userId, taskId) => {
     const currentTasks = user.tasks || [];
     const updatedTasks = [...currentTasks, { taskId, completedAt: new Date() }];
 
-    await user.update({ tasks: updatedTasks });
+    // Обновляем деньги и задачи
+    const newMoney = user.money + 1000;
+    await user.update({ tasks: updatedTasks, money: newMoney });
 
     console.log(`Task ${taskId} added to user ${userId}`);
   } catch (error) {
@@ -955,6 +957,7 @@ export const boost = async (req, res) => {
       const lastUpdate = new Date(boostData.dateLastUpdate).getTime();
       const timeSinceLastUpdate = now - lastUpdate;
     
+      console.log("Время",timeSinceLastUpdate, now, lastUpdate);
       // Проверяем, доступен ли буст
       if (!boostData||boostData?.cont <= 0) {
         return res.status(400).json({ message: 'Boost cannot be used yet' });
