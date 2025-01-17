@@ -385,7 +385,6 @@ export const getFriendList = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
 export const getTask = async (req, res) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -403,8 +402,9 @@ export const getTask = async (req, res) => {
 
     // Проверяем, есть ли задача в списке задач пользователя
     const userTasks = user.tasks || [];
-    console.log(userTasks, task)
-    const taskExists = userTasks.some((task) => task.taskId.includes(task));
+
+    // Исправляем проверку, чтобы сравнивать числа
+    const taskExists = userTasks.some((t) => t.taskId.includes(Number(task)));
     if (taskExists) {
       return res.status(400).json({ message: 'Task already exists for this user' });
     }
@@ -423,6 +423,7 @@ export const getTask = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 export const checkSubscription = async (userIdToCheck, botChannelId) => {
 
