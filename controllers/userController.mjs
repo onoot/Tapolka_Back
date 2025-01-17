@@ -407,9 +407,10 @@ export const getTask = async (req, res) => {
       return res.status(404).json({ message: 'Task not found' });
     }
 
-    res.json(Tasks);
 
-    setTimeout(() => addTaskToUser(id, task), 5000);
+    setTimeout(() => addTaskToUser(user, task), 5000);
+
+    res.json(Tasks);
   } catch (error) {
     console.error('Error getting task:', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -448,10 +449,8 @@ export const checkSubscription = async (userIdToCheck, botChannelId) => {
 }
 
 // Функция для добавления задачи пользователю
-export const addTaskToUser = async (userId, taskId) => {
+export const addTaskToUser = async (user, taskId) => {
   try {
-    const user = await User.findOne({ where: { telegramId: userId } });
-
     if (!user) {
       return false;
     }
