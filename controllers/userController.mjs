@@ -152,6 +152,10 @@ export const login = async (req, res) => {
       { expiresIn: '1h' }
     );
 
+    const win = existingUser?.win_combo || { status: false, date: null };
+    //сопоставить win дату с датой актуальных заданий, если дата актульных заданий на сегодня больше, чем дата победы, то вернуть пустой массив, иначе вернуть win_combo
+    const winCombo = win.date > today ? [] : win.win_combo;
+
     // Формирование объекта ответа
     return res.json({
       token,
@@ -166,7 +170,7 @@ export const login = async (req, res) => {
       rank: existingUser.rank,
       benefit: existingUser.benefit,
       key: existingUser.key,
-      combo_daily_tasks: existingUser.combo_daily_tasks,
+      combo_daily_tasks: winCombo,
       reward: {
         reward: filteredData[0]?.reward || null,
         date: filteredData[0]?.Data || null
