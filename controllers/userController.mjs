@@ -917,6 +917,7 @@ export const checkDaily = async (req, res) => {
           status: true,
           date: new Date(), // Фиксируем текущую дату
         };
+        user.count_win_combo =(user.count_win_combo || 0)+ 1;
         await user.save();
 
         return res.json({ message: 'Daily check successful', reward });
