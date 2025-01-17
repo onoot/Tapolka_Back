@@ -968,7 +968,7 @@ export const boost = async (req, res) => {
       if (!boostData.cont)
         boostData.cont = 0;
       // Проверяем, было ли 00:00 после последнего обновления
-      if (timeSinceLastUpdate >= 86400000) {
+      if (timeSinceLastUpdate >= 1) {
         // Полное восстановление счётчика до максимального значения
         boostData.cont = boostData.max_count;
         boostData.dateLastUpdate = new Date();
