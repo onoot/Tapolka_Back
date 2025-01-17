@@ -151,11 +151,19 @@ export const login = async (req, res) => {
       JWT_SECRET,
       { expiresIn: '1h' }
     );
-
-    const win = existingUser?.win_combo || { status: false, date: null };
-    //сопоставить win дату с датой актуальных заданий, если дата актульных заданий на сегодня больше, чем дата победы, то вернуть пустой массив, иначе вернуть win_combo
-    const winCombo = win.date > today ? [] : [win];
-
+    
+    const todayDateString = today.toISOString().split('T')[0];
+    const filteredD = Rewarw_Data.filter(item => {
+      const itemDateString = new Date(item.Data).toISOString().split('T')[0];
+      return itemDateString === todayDateString;
+    });
+    
+    const winCombo = win.date > filteredD[0]?.Data ? [] : user.combo_daily_tasks;
+    if (win.date > filteredD[0]?.Data) {
+      user.combo_daily_tasks = [];
+      await user.save();
+    }
+    
     // Формирование объекта ответа
     return res.json({
       token,
