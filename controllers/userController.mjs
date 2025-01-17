@@ -154,7 +154,7 @@ export const login = async (req, res) => {
 
     const win = existingUser?.win_combo || { status: false, date: null };
     //сопоставить win дату с датой актуальных заданий, если дата актульных заданий на сегодня больше, чем дата победы, то вернуть пустой массив, иначе вернуть win_combo
-    const winCombo = win.date > today ? [] : [win.win_combo];
+    const winCombo = win.date > today ? [] : [win];
 
     // Формирование объекта ответа
     return res.json({
