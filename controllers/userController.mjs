@@ -103,10 +103,20 @@ export const login = async (req, res) => {
     }
 
     const time = getTime();
+    const today = new Date();
+    const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 2);
+    const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2);
+    
     const Rewarw_Data = await DailyCombo.findAll({
-      limit: 10, // Ограничиваем количество записей
-      order: [['id', 'DESC']], // Сортируем по id в обратном порядке (опционально)
+      where: {
+        Data: {
+          [Op.between]: [startDate, endDate],
+        },
+      },
+      limit: 10,
+      order: [['id', 'DESC']],
     });
+    
 
     const filteredData = Rewarw_Data.filter(record => {
       try {
