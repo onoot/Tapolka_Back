@@ -403,7 +403,7 @@ export const getTask = async (req, res) => {
 
     // Проверяем, есть ли задача в списке задач пользователя
     const userTasks = user.tasks || [];
-    consolr.log(userTasks, task)
+    console.log(userTasks, task)
     const taskExists = userTasks.some((task) => task.taskId.includes(task));
     if (taskExists) {
       return res.status(400).json({ message: 'Task already exists for this user' });
