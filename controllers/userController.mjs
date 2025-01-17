@@ -151,19 +151,21 @@ export const login = async (req, res) => {
       JWT_SECRET,
       { expiresIn: '1h' }
     );
-    
-    const todayDateString = today.toISOString().split('T')[0];
+
+    const win = existingUser?.win_combo || { status: false, date: null };
+    const todayDateString = today.toISOString().split('T')[0]; // Форматируем текущую дату без времени
+
     const filteredD = Rewarw_Data.filter(item => {
       const itemDateString = new Date(item.Data).toISOString().split('T')[0];
       return itemDateString === todayDateString;
     });
-    
+
     const winCombo = win.date > filteredD[0]?.Data ? [] : user.combo_daily_tasks;
     if (win.date > filteredD[0]?.Data) {
       user.combo_daily_tasks = [];
       await user.save();
     }
-    
+
     // Формирование объекта ответа
     return res.json({
       token,
