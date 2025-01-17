@@ -462,7 +462,7 @@ export const addTaskToUser = async (user, taskId) => {
     const newMoney = user.money + 1000;
     await user.update({ tasks: updatedTasks, money: newMoney });
 
-    console.log(`Task ${taskId} added to user ${userId}`);
+    console.log(`Task ${taskId} added to user ${user.id}`);
   } catch (error) {
     console.error('Error adding task to user:', error);
   }
