@@ -408,10 +408,10 @@ export const getTask = async (req, res) => {
       return res.status(400).json({ message: 'Task already exists for this user' });
     }
 
-    // const Tasks = await Task.findOne({ where: { id: task } });
-    // if (!Tasks) {
-    //   return res.status(404).json({ message: 'Task not found' });
-    // }
+    const Tasks = await Task.findOne({ where: { id: task } });
+    if (!Tasks) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
 
     // Если задачи нет, добавляем её с задержкой
     setTimeout(() => addTaskToUser(user, task), 5000);
