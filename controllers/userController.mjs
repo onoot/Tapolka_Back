@@ -415,7 +415,7 @@ export const getTask = async (req, res) => {
     }
 
     // Если задачи нет, добавляем её с задержкой
-    setTimeout(() => addTaskToUser(user, task), 5000);
+    setTimeout(() => addTaskToUser(user, task), 2000);
 
     res.json(Tasks);
   } catch (error) {
