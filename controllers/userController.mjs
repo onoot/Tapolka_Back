@@ -259,7 +259,7 @@ export const addCoins = async (req, res) => {
     console.log(`Обновление: ${JSON.stringify(updatedUser)}\n`);
 
     try {
-      const user = await User.findByPk(userId);
+      const user = await User.findByPk(id);
   
       if (!user) {
         console.error('Пользователь не найден');
