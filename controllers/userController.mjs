@@ -258,6 +258,24 @@ export const addCoins = async (req, res) => {
 
     console.log(`Обновление: ${JSON.stringify(updatedUser)}\n`);
 
+    try {
+      const user = await User.findByPk(userId);
+  
+      if (!user) {
+        console.error('Пользователь не найден');
+        return;
+      }
+  
+      const rankPoints = Math.floor(user.totalMoney / 10000000) * 1000;
+  
+      if (user.rank !== rankPoints) {
+        user.rank = rankPoints;
+        await user.save();
+      }
+    } catch (error) {
+      console.error('Ошибка при обновлении ранга:', error);
+    }
+
     return res.json({ message: 'Coins added successfully', user: updatedUser });
   } catch (error) {
     console.error('Database error:', error);
