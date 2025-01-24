@@ -80,7 +80,7 @@ export const login = async (req, res) => {
             level: 1,
             max_level: 100,
           }
-        }
+        },
       });
     }
     if (!existingUser.boost) {
@@ -186,7 +186,9 @@ export const login = async (req, res) => {
         date: filteredData[0]?.Data || null
       },
       wallet: existingUser?.wallet,
-      boost: existingUser?.boost
+      boost: existingUser?.boost,
+      win_combo_count: existingUser?.count_win_combo || 0,
+
     });
   } catch (e) {
     console.error(e);

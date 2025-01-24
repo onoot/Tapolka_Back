@@ -125,6 +125,21 @@ const User = sequelize.define('User', {
       },
     },
   },
+  transactions: {
+    type: DataTypes.JSON,
+    allowNull: false,
+    defaultValue: {
+      daily: {
+        count: 0,
+        lastDate: new Date().toISOString(),
+      },
+      tasks: {
+        count: 0,
+        lastDate: new Date().toISOString(),
+      },
+      totalTokens: 0
+    },
+  },
   roleId: {
     type: DataTypes.INTEGER,
     references: {

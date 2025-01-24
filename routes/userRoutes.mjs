@@ -19,6 +19,8 @@ import {
     boost,
 } from '../controllers/userController.mjs';
 
+import {prepareTransaction, sendTransaction, checkTransaction} from '../controllers/transaction.mjs'
+
 const router = express.Router();
 
 router.post('/login', login);
@@ -61,5 +63,10 @@ router.get('/manifest', (req, res) => {
 router.get('/img', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/img.png'));
 });
+
+// Транзакции
+router.post('/prepare-transaction', prepareTransaction);
+router.post('/send-transaction', sendTransaction);
+router.post('/check-transaction', checkTransaction);
 
 export default router;
