@@ -1,56 +1,56 @@
 import crypto from 'crypto';
-import { json } from 'stream/consumers';
 
-export function validateTelegramData(telegramInitData, apiToken) {
-    try{
-    console.log('telegramInitData:', telegramInitData);
-    const initData = new URLSearchParams(telegramInitData);
-    console.log('initData:', initData);
-    const hash = initData.get("hash");
-    if (!hash) return false;
-    initData.delete("hash");
-
-    const dataToCheck = [...initData.entries()]
-        .map(([key, value]) => {
-            let processedValue = decodeURIComponent(value);
-            if (key === "user" && typeof processedValue === 'string' && processedValue.startsWith('{') && processedValue.endsWith('}')) { //Более строгая проверка на JSON
-                try {
-                    processedValue = JSON.stringify(JSON.parse(processedValue)); // Парсим только если это похоже на JSON
-                } catch (error) {
-                    console.error("Ошибка парсинга user:", error);
-                    return ""; // Или другое подходящее обработка ошибки
-                }
-            }
-            return `${encodeURIComponent(key)}=${encodeURIComponent(processedValue)}`;
-        })
-        .sort()
-        .join('\n');
-    console.log("dataToCheck:", dataToCheck);
-
-    const hmac = crypto.createHmac('sha256', "WebAppData"); //"WebAppData" - это ваш секретный ключ? Если нет, замените на переменную
-    hmac.update(apiToken);
-    const secretKey = hmac.digest();  //генерируем secretKey из apiToken
-
-    const hmac2 = crypto.createHmac('sha256', secretKey);
-    hmac2.update(dataToCheck);
-    const _hash = hmac2.digest('hex');
-
-
-    console.log("Original hash:", hash);
-    console.log("Computed hash:", _hash);
-
-    let user = null;
+export const validateTelegramData = (initData, botToken) => {
     try {
-        user = JSON.parse(initData.get("user"));
+        // Преобразуем строку initData в объект URLSearchParams
+        const searchParams = new URLSearchParams(initData);
+        
+        // Получаем hash из параметров
+        const hash = searchParams.get('hash');
+        if (!hash) return false;
+        
+        // Удаляем hash из проверяемых данных
+        searchParams.delete('hash');
+        
+        // Сортируем оставшиеся параметры
+        const dataCheckArr = Array.from(searchParams.entries())
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([key, value]) => `${key}=${value}`);
+            
+        // Создаем строку для проверки
+        const dataCheckString = dataCheckArr.join('\n');
+        
+        // Создаем HMAC
+        const secret = crypto.createHmac('sha256', 'WebAppData')
+            .update(botToken)
+            .digest();
+            
+        // Вычисляем и сравниваем подпись
+        const signature = crypto.createHmac('sha256', secret)
+            .update(dataCheckString)
+            .digest('hex');
+            
+        return signature === hash;
     } catch (error) {
-        console.error( JSON.stringify(user));
-        console.error("Ошибка парсинга user:", error);
+        console.error('Ошибка валидации данных Telegram:', error);
+        return false;
     }
+};
 
-    return { validate: hash === _hash, user };
-}
-catch (error) {
-    console.error("Error:", error);
-    return false;
-}
-}
+export const parseTelegramData = (initData) => {
+    try {
+        const searchParams = new URLSearchParams(initData);
+        const userStr = searchParams.get('user');
+        const user = JSON.parse(decodeURIComponent(userStr));
+        
+        return {
+            query_id: searchParams.get('query_id'),
+            user,
+            auth_date: searchParams.get('auth_date'),
+            hash: searchParams.get('hash')
+        };
+    } catch (error) {
+        console.error('Ошибка парсинга данных Telegram:', error);
+        return null;
+    }
+};
