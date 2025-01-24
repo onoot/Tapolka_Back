@@ -39,20 +39,42 @@ export const login = async (req, res) => {
   try {
     const { query_id, user, auth_date, hash } = req.body;
 
+    // Проверяем наличие всех необходимых данных
+    if (!user || typeof user === 'undefined') {
+      return res.status(400).json({ message: 'Invalid user data' });
+    }
+
     // Валидация данных от Telegram
-    if (!validateTelegramData({ query_id, user, auth_date, hash }, SECRET_BOT_TOKEN)) {
-      return res.status(401).json({ message: 'Invalid Telegram data valodation' });
+    const telegramData = { query_id, user, auth_date, hash };
+    if (!validateTelegramData(telegramData, SECRET_BOT_TOKEN)) {
+      return res.status(401).json({ message: 'Invalid Telegram data validation' });
     }
 
     // Проверка или создание пользователя в базе данных
     let existingUser = await User.findOne({
-      where: { telegramId: user.id },
+      where: { telegramId: user.id.toString() }, // Преобразуем id в строку
       include: { model: Role, as: 'role', attributes: ['name'] },
     });
 
     if (!existingUser) {
+      const defaultBoost = {
+        fullEnergi: {
+          count: 3,
+          max_count: 3,
+          dateLastUpdate: new Date().toISOString(),
+        },
+        multiplier: {
+          level: 1,
+          max_level: 100,
+        },
+        energiLimit: {
+          level: 1,
+          max_level: 100,
+        }
+      };
+
       existingUser = await User.create({
-        telegramId: user.id,
+        telegramId: user.id.toString(),
         firstName: user.first_name || '',
         lastName: user.last_name || '',
         username: user.username || '',
@@ -64,23 +86,14 @@ export const login = async (req, res) => {
         benefit: 0,
         roleId: 4,
         lastEnergyUpdate: new Date(),
-        combo_daily_tasks: user?.combo_daily_tasks || [],
+        combo_daily_tasks: [],
         key: 0,
-        boost: {
-          fullEnergi: {
-            count: 3,
-            max_count: 3,
-            dateLastUpdate: new Date().toISOString(),
-          },
-          multiplier: {
-            level: 1,
-            max_level: 100,
-          },
-          energiLimit: {
-            level: 1,
-            max_level: 100,
-          }
-        },
+        boost: defaultBoost,
+        transactions: {
+          daily: { count: 0, lastDate: new Date().toISOString() },
+          tasks: { count: 0, lastDate: new Date().toISOString() },
+          totalTokens: 0
+        }
       });
     }
     if (!existingUser.boost) {
