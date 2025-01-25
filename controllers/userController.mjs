@@ -23,24 +23,37 @@ export const getTime = () => {
 
 export const login = async (req, res) => {
   try {
-    const initData = req.body.initData || req.query.initData;
+     // Получаем сырую строку initData из тела или query параметров
+     const rawInitData = req.body.initData || req.query.initData;
     
-    if (!initData) {
-      return res.status(400).json({ message: 'Missing initData' });
-    }
-
-    const { query_id, user, auth_date, hash } = req.body;
-
-    // Проверяем наличие всех необходимых данных
-    if (!user || typeof user === 'undefined') {
-      return res.status(400).json({ message: 'Invalid user data' });
-    }
-
-    // Валидация данных от Telegram
-    const telegramData = { query_id, user, auth_date, hash };
-    if (!validateTelegramData(telegramData, SECRET_BOT_TOKEN)) {
-      return res.status(401).json({ message: 'Invalid Telegram data validation' });
-    }
+     if (!rawInitData) {
+       return res.status(400).json({ message: 'Missing initData' });
+     }
+ 
+     // Парсим URL-encoded строку в объект
+     const parsedData = Object.fromEntries(new URLSearchParams(rawInitData));
+     
+     // Извлекаем и декодируем user
+     let user;
+     try {
+       user = parsedData.user ? JSON.parse(decodeURIComponent(parsedData.user)) : null;
+     } catch (e) {
+       return res.status(400).json({ message: 'Invalid user data format' });
+     }
+ 
+     // Формируем объект для валидации
+     const telegramData = {
+       query_id: parsedData.query_id,
+       user: user,
+       auth_date: parsedData.auth_date,
+       hash: parsedData.hash,
+       signature: parsedData.signature
+     };
+ 
+     // Проверяем наличие всех обязательных полей
+     if (!telegramData.query_id || !telegramData.user?.id || !telegramData.auth_date || !telegramData.hash) {
+       return res.status(400).json({ message: 'Missing required fields in initData' });
+     }
 
     // Проверка или создание пользователя в базе данных
     let existingUser = await User.findOne({
@@ -165,10 +178,26 @@ export const login = async (req, res) => {
       return itemDateString === todayDateString;
     });
 
-    const winCombo = win.date > filteredD[0]?.Data ? [] : user.combo_daily_tasks;
-    if (win.date > filteredD[0]?.Data) {
-      user.combo_daily_tasks = [];
-      await user.save();
+    // Восстановление fullEnergi
+    if (existingUser) {
+      const boost = existingUser.boost || {};
+      if (boost.fullEnergi) {
+        const lastUpdate = new Date(boost.fullEnergi.dateLastUpdate);
+        const now = new Date();
+        
+        if ((now - lastUpdate) >= 12 * 60 * 60 * 1000) { // 12 часов в миллисекундах
+          boost.fullEnergi.count = boost.fullEnergi.max_count;
+          boost.fullEnergi.dateLastUpdate = now.toISOString();
+          
+          await existingUser.update({ boost: boost });
+        }
+      }
+    }
+
+    const winCombo = win.date > filteredData[0]?.Data ? [] : existingUser.combo_daily_tasks;
+    if (win.date > filteredData[0]?.Data) {
+      existingUser.combo_daily_tasks = [];
+      await existingUser.save();
     }
 
     // Формирование объекта ответа
