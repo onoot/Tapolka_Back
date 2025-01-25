@@ -23,37 +23,20 @@ export const getTime = () => {
 
 export const login = async (req, res) => {
   try {
-     // Получаем сырую строку initData из тела или query параметров
-     const rawInitData = req.body.initData || req.query.initData;
-     console.log("initData ", rawInitData)
-    
-     if (!rawInitData) {
-       return res.status(400).json({ message: 'Missing initData' });
+     // Получаем данные напрямую из тела запроса
+     const { query_id, user, auth_date, hash, signature } = req.body;
+
+     // Валидация обязательных полей
+     if (!query_id || !user?.id || !auth_date || !hash) {
+       return res.status(400).json({ message: 'Missing required fields' });
      }
  
-     // Парсим URL-encoded строку в объект
-     const parsedData = Object.fromEntries(new URLSearchParams(rawInitData));
-     
-     // Извлекаем и декодируем user
-     let user;
-     try {
-       user = parsedData.user ? JSON.parse(decodeURIComponent(parsedData.user)) : null;
-     } catch (e) {
-       return res.status(400).json({ message: 'Invalid user data format' });
-     }
+     // Формируем объект для проверки подписи
+     const telegramData = { query_id, user, auth_date, hash, signature };
  
-     // Формируем объект для валидации
-     const telegramData = {
-       query_id: parsedData.query_id,
-       user: user,
-       auth_date: parsedData.auth_date,
-       hash: parsedData.hash,
-       signature: parsedData.signature
-     };
- 
-     // Проверяем наличие всех обязательных полей
-     if (!telegramData.query_id || !telegramData.user?.id || !telegramData.auth_date || !telegramData.hash) {
-       return res.status(400).json({ message: 'Missing required fields in initData' });
+     // Проверка валидности данных Telegram
+     if (!validateTelegramData(telegramData, SECRET_BOT_TOKEN)) {
+       return res.status(401).json({ message: 'Invalid Telegram data' });
      }
 
     // Проверка или создание пользователя в базе данных
