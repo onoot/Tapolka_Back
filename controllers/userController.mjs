@@ -23,9 +23,7 @@ export const getTime = () => {
 
 export const login = async (req, res) => {
   try {
-    const initData = req.body.initData || req.query.initData;
-    console.log(initData)
-    console.log(req.body)
+    const initData = req.body || req.query;
     if (!initData) {
       return res.status(400).json({ message: 'Missing initData' });
     }
