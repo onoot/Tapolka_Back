@@ -1,5 +1,4 @@
 import crypto from 'crypto';
-import crypto from 'crypto';
 
 export const validateTelegramData = (initData, botToken) => {
     try {
