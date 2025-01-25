@@ -29,8 +29,7 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'Missing initData' });
     }
 
-    const { query_id, user, auth_date, hash } = req.body;
-    console.log("initData: ", initData);
+    const { query_id, user, auth_date, hash } = initData;
     // Проверяем наличие всех необходимых данных
     if (!user || typeof user === 'undefined') {
       return res.status(400).json({ message: 'Invalid user data' });
