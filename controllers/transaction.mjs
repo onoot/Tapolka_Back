@@ -102,6 +102,7 @@ export const sendTransaction = async (req, res) => {
 
 export const checkTransaction = async (req, res) => {
     try {
+        const { txHash } = req.body;
         const txInfo = await tonweb.provider.getTransaction(txHash);
     
         if (txInfo && txInfo.status === "confirmed") {
