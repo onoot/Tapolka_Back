@@ -17,7 +17,9 @@ export const prepareTransaction = async (req, res) => {
         const { senderAddress, recipientAddress, amount, userId } = req.body;
         
         // 1. Проверка существования пользователя
-        const user = await User.findByPk(userId);
+        const user = await User.findOne({ 
+            where: { telegramId: userId } 
+        },);
         if (!user) {
             return res.status(400).json({ 
                 error: "User not found. Complete registration first." 
