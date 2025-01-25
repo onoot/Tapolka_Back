@@ -29,7 +29,7 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'Missing initData' });
     }
 
-    const { query_id, user, auth_date, hash } = req.body;
+    const {user } = initData;
 
     // Проверяем наличие всех необходимых данных
     if (!user || typeof user === 'undefined') {
@@ -37,8 +37,7 @@ export const login = async (req, res) => {
     }
 
     // Валидация данных от Telegram
-    const telegramData = { query_id, user, auth_date, hash };
-    if (!validateTelegramData(telegramData, SECRET_BOT_TOKEN)) {
+    if (!validateTelegramData(initData, SECRET_BOT_TOKEN)) {
       return res.status(401).json({ message: 'Invalid Telegram data validation' });
     }
 
