@@ -44,6 +44,7 @@ export const validateTelegramData = (initData, botToken) => {
         console.log('Computed signature:', signature);
         console.log('Received hash:', hash);
 
+        console.log(botToken)
         // 8. Возвращаем результат сравнения
         return signature === hash;
     } catch (error) {
