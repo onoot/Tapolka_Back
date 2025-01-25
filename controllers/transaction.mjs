@@ -7,46 +7,64 @@ import User from "../models/User.mjs";
 const tonweb = new TonWeb(new TonWeb.HttpProvider('https://toncenter.com/api/v2/jsonRPC', {
     apiKey: process.env.TONCENTER_API_KEY 
 }));
-
 export const prepareTransaction = async (req, res) => {
     try {
         const token = req.headers.authorization?.split(" ")[1];
+        if (!token || !VerifJWT(token)) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
 
-    if (!token || !VerifJWT(token)) {
-        return res.status(401).json({ message: "Unauthorized" });
-    }
+        const { senderAddress, recipientAddress, amount, userId } = req.body;
+        
+        // 1. Проверка существования пользователя
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(400).json({ 
+                error: "User not found. Complete registration first." 
+            });
+        }
 
-    const { senderAddress, recipientAddress, amount, userId } = req.body;
-    console.log(req.body)
-    if (!senderAddress || !recipientAddress || !amount || !userId) {
-      return res.status(400).json({ error: "Invalid input" });
-    }
-  
-    // Генерация уникального nonce для защиты от повторных транзакций
-    const transactionId = uuidv4();
-  
-    // Сохранение платежа в базе данных как "ожидающий"
-    await Payment.create({
-      transactionId,
-      senderAddress,
-      recipientAddress,
-      amount,
-      status: "pending",
-      userId,
-    });
-  
-    res.json({
-      transactionId,
-      senderAddress,
-      recipientAddress,
-      amount,
-    })
+        // 2. Проверка типа данных userId
+        if (typeof user.id !== 'number') {
+            return res.status(400).json({
+                error: "Invalid user ID format"
+            });
+        }
+
+        // 3. Создание платежа в транзакции
+        const transaction = await sequelize.transaction();
+        
+        try {
+            const payment = await Payment.create({
+                transactionId: uuidv4(),
+                senderAddress,
+                recipientAddress,
+                amount,
+                status: "pending",
+                userId: user.id // Используем ID из найденного пользователя
+            }, { transaction });
+
+            await transaction.commit();
+            
+            res.json({
+                transactionId: payment.transactionId,
+                senderAddress,
+                recipientAddress,
+                amount
+            });
+
+        } catch (error) {
+            await transaction.rollback();
+            throw error;
+        }
+
     } catch (error) {
         console.error("Ошибка при подготовке транзакции:", error);
-        return res.status(500).json({ error: "Ошибка при подготовке транзакции" });
+        return res.status(500).json({ 
+            error: error.message || "Ошибка при подготовке транзакции" 
+        });
     }
 }
-
 export const sendTransaction = async (req, res) => {
     const { transactionId, signedTransaction } = req.body;
 
