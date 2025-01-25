@@ -23,21 +23,24 @@ export const getTime = () => {
 
 export const login = async (req, res) => {
   try {
-     // Получаем данные напрямую из тела запроса
-     const { query_id, user, auth_date, hash, signature } = req.body;
+    const initData = req.body.initData || req.query.initData;
+    
+    if (!initData) {
+      return res.status(400).json({ message: 'Missing initData' });
+    }
 
-     // Валидация обязательных полей
-     if (!query_id || !user?.id || !auth_date || !hash) {
-       return res.status(400).json({ message: 'Missing required fields' });
-     }
- 
-     // Формируем объект для проверки подписи
-     const telegramData = { query_id, user, auth_date, hash, signature };
- 
-     // Проверка валидности данных Telegram
-     if (!validateTelegramData(telegramData, SECRET_BOT_TOKEN)) {
-       return res.status(401).json({ message: 'Invalid Telegram data' });
-     }
+    const { query_id, user, auth_date, hash } = req.body;
+
+    // Проверяем наличие всех необходимых данных
+    if (!user || typeof user === 'undefined') {
+      return res.status(400).json({ message: 'Invalid user data' });
+    }
+
+    // Валидация данных от Telegram
+    const telegramData = { query_id, user, auth_date, hash };
+    if (!validateTelegramData(telegramData, SECRET_BOT_TOKEN)) {
+      return res.status(401).json({ message: 'Invalid Telegram data validation' });
+    }
 
     // Проверка или создание пользователя в базе данных
     let existingUser = await User.findOne({
