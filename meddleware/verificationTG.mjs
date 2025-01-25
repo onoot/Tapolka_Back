@@ -4,7 +4,8 @@ export const validateTelegramData = (initData, botToken) => {
     try {
         // Преобразуем строку initData в объект URLSearchParams
         const searchParams = new URLSearchParams(initData);
-        
+        console.log(initData);
+        console.log(searchParams);
         // Получаем hash из параметров
         const hash = searchParams.get('hash');
         if (!hash) return false;
@@ -29,7 +30,7 @@ export const validateTelegramData = (initData, botToken) => {
         const signature = crypto.createHmac('sha256', secret)
             .update(dataCheckString)
             .digest('hex');
-            
+            console.log(signature, hash)
         return signature === hash;
     } catch (error) {
         console.error('Ошибка валидации данных Telegram:', error);
