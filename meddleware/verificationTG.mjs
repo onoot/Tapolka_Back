@@ -1,45 +1,47 @@
 import crypto from 'crypto';
 
-export const validateTelegramData = (initDataString, botToken) => {
+export const validateTelegramData = (initData, botToken) => {
     try {
-        const searchParams = new URLSearchParams(initDataString);
-        const hash = searchParams.get('hash');
+        const reInitData = initData.user;
+        const test = encodeURIComponent(JSON.stringify(reInitData));
+        initData.user = test;
+        console.log(test)
+        // Преобразуем строку initData в объект URLSearchParams
+        const searchParams = new URLSearchParams(initData);
         
-        if (!hash) {
-            console.error('[Validation] Hash parameter missing');
-            return false;
-        }
-
-        // Создаем клон без hash
-        const checkParams = new URLSearchParams(initDataString);
-        checkParams.delete('hash');
-
-        // Сортировка и формирование data_check_string
-        const dataCheckString = Array.from(checkParams.entries())
+        // Получаем hash из параметров
+        const hash = searchParams.get('hash');
+        if (!hash) return false;
+        
+        // Удаляем hash из проверяемых данных
+        searchParams.delete('hash');
+        
+        // Сортируем оставшиеся параметры
+        const dataCheckArr = Array.from(searchParams.entries())
             .sort(([a], [b]) => a.localeCompare(b))
-            .map(([k, v]) => `${k}=${v}`)
-            .join('\n');
-
-        console.log('[Validation] DataCheckString:', dataCheckString);
-
-        // Генерация HMAC
+            .map(([key, value]) => `${key}=${value}`);
+            
+        // Создаем строку для проверки
+        const dataCheckString = dataCheckArr.join('\n');
+        
+        // Создаем HMAC
         const secret = crypto.createHmac('sha256', 'WebAppData')
             .update(botToken)
             .digest();
-
+            
+        // Вычисляем и сравниваем подпись
         const signature = crypto.createHmac('sha256', secret)
             .update(dataCheckString)
             .digest('hex');
-
-        console.log('[Validation] Computed signature:', signature);
-        console.log('[Validation] Received hash:', hash);
-
+            console.log(searchParams)
+            
         return signature === hash;
     } catch (error) {
-        console.error('[Validation] Critical error:', error);
+        console.error('Ошибка валидации данных Telegram:', error);
         return false;
     }
 };
+
 export const parseTelegramData = (initData) => {
     try {
         const searchParams = new URLSearchParams(initData);

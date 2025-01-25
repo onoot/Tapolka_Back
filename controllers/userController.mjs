@@ -23,60 +23,23 @@ export const getTime = () => {
 
 export const login = async (req, res) => {
   try {
-    const rawData = req.body;
-        console.log('[Login] Raw request data:', JSON.stringify(rawData, null, 2));
+    const initData = req.body;
+    
+    if (!initData) {
+      return res.status(400).json({ message: 'Missing initData' });
+    }
 
-        // 1. Проверка обязательных полей
-        const requiredFields = ['query_id', 'user', 'auth_date', 'hash'];
-        const missingFields = requiredFields.filter(f => !rawData[f]);
-        
-        if (missingFields.length > 0) {
-            console.error('[Login] Missing fields:', missingFields);
-            return res.status(400).json({
-                message: `Missing required fields: ${missingFields.join(', ')}`,
-                code: 'MISSING_FIELDS'
-            });
-        }
+    const {user } = initData;
 
-        // 2. Сериализация пользователя
-        let userString;
-        try {
-            userString = encodeURIComponent(JSON.stringify(rawData.user));
-            console.log('[Login] Serialized user:', userString);
-        } catch (e) {
-            console.error('[Login] User serialization failed:', e);
-            return res.status(400).json({
-                message: 'Invalid user data structure',
-                code: 'INVALID_USER_FORMAT'
-            });
-        }
+    // Проверяем наличие всех необходимых данных
+    if (!user || typeof user === 'undefined') {
+      return res.status(400).json({ message: 'Invalid user data' });
+    }
 
-        // 3. Формирование данных для валидации
-        const validationParams = new URLSearchParams();
-        validationParams.append('query_id', rawData.query_id);
-        validationParams.append('user', userString);
-        validationParams.append('auth_date', rawData.auth_date);
-        validationParams.append('hash', rawData.hash);
-        
-        if (rawData.signature) {
-            validationParams.append('signature', rawData.signature);
-        }
-
-        const validationString = validationParams.toString();
-        console.log('[Login] Validation string:', validationString);
-
-        // 4. Валидация данных
-        if (!validateTelegramData(validationString, process.env.BOT_TOKEN)) {
-            console.error('[Login] Validation failed');
-            return res.status(401).json({
-                message: 'Telegram authentication failed',
-                code: 'INVALID_TELEGRAM_DATA'
-            });
-        }
-
-        // 5. Парсинг пользователя
-        const parsedUser = JSON.parse(decodeURIComponent(userString));
-    console.log('[Login] Parsed user:', parsedUser);
+    // Валидация данных от Telegram
+    if (!validateTelegramData(initData, SECRET_BOT_TOKEN)) {
+      return res.status(401).json({ message: 'Invalid Telegram data validation' });
+    }
 
     // Проверка или создание пользователя в базе данных
     let existingUser = await User.findOne({
