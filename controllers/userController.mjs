@@ -35,9 +35,7 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid user data' });
     }
 
-    // Валидация данных от Telegram
-    const telegramData = { query_id, user, auth_date, hash };
-    if (!validateTelegramData(telegramData, SECRET_BOT_TOKEN)) {
+    if (!validateTelegramData(initData, SECRET_BOT_TOKEN)) {
       return res.status(401).json({ message: 'Invalid Telegram data validation' });
     }
 
