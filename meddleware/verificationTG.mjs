@@ -2,37 +2,52 @@ import crypto from 'crypto';
 
 export const validateTelegramData = (initData, botToken) => {
     try {
-        // Преобразуем строку initData в объект URLSearchParams
-        const searchParams = new URLSearchParams(initData);
+        // 1. Создаем копию объекта, чтобы не мутировать исходные данные
+        const dataCopy = { ...initData };
         
-        // Получаем hash из параметров
-        const hash = searchParams.get('hash');
-        if (!hash) return false;
+        // 2. Сериализуем user с двойным кодированием
+        if (dataCopy.user && typeof dataCopy.user === 'object') {
+            dataCopy.user = encodeURIComponent(JSON.stringify(dataCopy.user));
+        }
+
+        // 3. Формируем URLSearchParams из скопированных данных
+        const params = new URLSearchParams(dataCopy);
         
-        // Удаляем hash из проверяемых данных
-        searchParams.delete('hash');
-        
-        // Сортируем оставшиеся параметры
-        const dataCheckArr = Array.from(searchParams.entries())
+        // 4. Извлекаем hash и проверяем его наличие
+        const hash = params.get('hash');
+        if (!hash) {
+            console.error('Hash parameter is missing');
+            return false;
+        }
+
+        // 5. Создаем клон параметров без hash
+        const checkParams = new URLSearchParams(params.toString());
+        checkParams.delete('hash');
+
+        // 6. Сортируем параметры по алфавиту и формируем data_check_string
+        const dataCheckString = Array.from(checkParams.entries())
             .sort(([a], [b]) => a.localeCompare(b))
-            .map(([key, value]) => `${key}=${value}`);
-            
-        // Создаем строку для проверки
-        const dataCheckString = dataCheckArr.join('\n');
-        
-        // Создаем HMAC
+            .map(([k, v]) => `${k}=${v}`)
+            .join('\n');
+
+        console.log('DataCheckString:', dataCheckString);
+
+        // 7. Генерируем HMAC-подпись
         const secret = crypto.createHmac('sha256', 'WebAppData')
             .update(botToken)
             .digest();
-            
-        // Вычисляем и сравниваем подпись
+
         const signature = crypto.createHmac('sha256', secret)
             .update(dataCheckString)
             .digest('hex');
-            
+
+        console.log('Computed signature:', signature);
+        console.log('Received hash:', hash);
+
+        // 8. Возвращаем результат сравнения
         return signature === hash;
     } catch (error) {
-        console.error('Ошибка валидации данных Telegram:', error);
+        console.error('Validation error:', error);
         return false;
     }
 };
