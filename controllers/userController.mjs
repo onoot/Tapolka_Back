@@ -36,10 +36,10 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'Invalid user data' });
     }
 
-    // Валидация данных от Telegram
-    if (!validateTelegramData(initData, SECRET_BOT_TOKEN)) {
-      return res.status(401).json({ message: 'Invalid Telegram data validation' });
-    }
+    // // Валидация данных от Telegram
+    // if (!validateTelegramData(initData, SECRET_BOT_TOKEN)) {
+    //   return res.status(401).json({ message: 'Invalid Telegram data validation' });
+    // }
 
     // Проверка или создание пользователя в базе данных
     let existingUser = await User.findOne({
