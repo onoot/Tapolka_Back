@@ -23,21 +23,63 @@ export const getTime = () => {
 
 export const login = async (req, res) => {
   try {
-    const initData = req.body || req.query;
+    let initData = req.body || req.query;
+
     if (!initData) {
       return res.status(400).json({ message: 'Missing initData' });
     }
+    // 1. Получаем данные из запроса
+    console.log('Raw initData:', initData);
 
-    const { query_id, user, auth_date, hash } = initData;
-    // Проверяем наличие всех необходимых данных
-    if (!user || typeof user === 'undefined') {
-      return res.status(400).json({ message: 'Invalid user data' });
+    // 2. Процедурное извлечение полей
+    const fields = [
+      'query_id',
+      'user',
+      'auth_date',
+      'hash',
+      'signature'
+    ];
+
+    const extractedData = {};
+    for (const field of fields) {
+      extractedData[field] = initData[field];
     }
 
-    if (!validateTelegramData(initData, SECRET_BOT_TOKEN)) {
-      return res.status(401).json({ message: 'Invalid Telegram data validation' });
+    // 3. Проверка обязательных полей
+    if (!extractedData.user || !extractedData.hash) {
+      return res.status(400).json({ message: 'Missing required fields' });
     }
 
+    // 4. Преобразование user в строку
+    let userString;
+    try {
+      userString = typeof extractedData.user === 'string'
+        ? extractedData.user // если уже строка
+        : encodeURIComponent(JSON.stringify(extractedData.user)); // если объект
+    } catch (e) {
+      console.error('User serialization error:', e);
+      return res.status(400).json({ message: 'Invalid user format' });
+    }
+
+    // 5. Собираем данные для валидации
+    const validationData = new URLSearchParams();
+    for (const [key, value] of Object.entries(extractedData)) {
+      if (key === 'user') {
+        validationData.append(key, userString);
+      } else if (value !== undefined && value !== null) {
+        validationData.append(key, value);
+      }
+    }
+
+    // 6. Валидация данных
+    console.log('Data for validation:', validationData.toString());
+    if (!validateTelegramData(validationData.toString(), process.env.BOT_TOKEN)) {
+      return res.status(401).json({ message: 'Telegram validation failed' });
+    }
+
+    // 7. Парсинг пользователя
+    const parsedUser = JSON.parse(decodeURIComponent(userString));
+    console.log('Parsed user:', parsedUser);
     // Проверка или создание пользователя в базе данных
     let existingUser = await User.findOne({
       where: { telegramId: user.id.toString() }, // Преобразуем id в строку

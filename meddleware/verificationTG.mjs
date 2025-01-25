@@ -1,42 +1,40 @@
 import crypto from 'crypto';
 
-export const validateTelegramData = (initData, botToken) => {
+export const validateTelegramData = (initDataString, botToken) => {
     try {
-        // Преобразуем строку initData в объект URLSearchParams
-        const searchParams = new URLSearchParams(initData);
-        console.log(initData);
-        console.log(searchParams);
-        // Получаем hash из параметров
-        const hash = searchParams.get('hash');
+        const params = new URLSearchParams(initDataString);
+        const hash = params.get('hash');
         if (!hash) return false;
-        
-        // Удаляем hash из проверяемых данных
-        searchParams.delete('hash');
-        
-        // Сортируем оставшиеся параметры
-        const dataCheckArr = Array.from(searchParams.entries())
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([key, value]) => `${key}=${value}`);
-            
-        // Создаем строку для проверки
-        const dataCheckString = dataCheckArr.join('\n');
-        
-        // Создаем HMAC
+
+        // Создаем клон без hash для проверки подписи
+        const checkParams = new URLSearchParams(initDataString);
+        checkParams.delete('hash');
+
+        // Сортировка параметров по алфавиту
+        const sortedParams = Array.from(checkParams.entries())
+            .sort(([a], [b]) => a.localeCompare(b));
+
+        // Формируем data_check_string
+        const dataCheckString = sortedParams
+            .map(([key, value]) => `${key}=${value}`)
+            .join('\n');
+
+        // Генерация HMAC
         const secret = crypto.createHmac('sha256', 'WebAppData')
             .update(botToken)
             .digest();
-            
-        // Вычисляем и сравниваем подпись
+
         const signature = crypto.createHmac('sha256', secret)
             .update(dataCheckString)
             .digest('hex');
-            console.log(signature, hash)
+
         return signature === hash;
     } catch (error) {
-        console.error('Ошибка валидации данных Telegram:', error);
+        console.error('Validation error:', error);
         return false;
     }
 };
+
 
 export const parseTelegramData = (initData) => {
     try {
