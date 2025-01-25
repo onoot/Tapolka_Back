@@ -2,21 +2,26 @@ import crypto from 'crypto';
 
 export const validateTelegramData = (initData, botToken) => {
     try {
-        // 1. Создаем копию объекта, чтобы не мутировать исходные данные
-        const dataCopy = { ...initData };
+        // 1. Создаем копию объекта, чтобы не мутировать оригинальные данные
+        const encodedData = {};
         
-        // 2. Сериализуем user с двойным кодированием
-        if (dataCopy.user && typeof dataCopy.user === 'object') {
-            dataCopy.user = encodeURIComponent(JSON.stringify(dataCopy.user));
+        // 2. Кодируем все поля через encodeURIComponent
+        for (const [key, value] of Object.entries(initData)) {
+            if (typeof value === 'object') {
+                encodedData[key] = encodeURIComponent(JSON.stringify(value));
+            } else {
+                encodedData[key] = encodeURIComponent(value);
+            }
         }
 
-        // 3. Формируем URLSearchParams из скопированных данных
-        const params = new URLSearchParams(dataCopy);
-        
-        // 4. Извлекаем hash и проверяем его наличие
+        // 3. Формируем URLSearchParams из закодированных данных
+        const params = new URLSearchParams(encodedData);
+        console.log('Encoded params:', params.toString());
+
+        // 4. Извлекаем хеш
         const hash = params.get('hash');
         if (!hash) {
-            console.error('Hash parameter is missing');
+            console.error('Hash not found');
             return false;
         }
 
@@ -24,15 +29,16 @@ export const validateTelegramData = (initData, botToken) => {
         const checkParams = new URLSearchParams(params.toString());
         checkParams.delete('hash');
 
-        // 6. Сортируем параметры по алфавиту и формируем data_check_string
-        const dataCheckString = Array.from(checkParams.entries())
+        // 6. Сортировка параметров по алфавиту
+        const dataCheckArr = Array.from(checkParams.entries())
             .sort(([a], [b]) => a.localeCompare(b))
-            .map(([k, v]) => `${k}=${v}`)
-            .join('\n');
+            .map(([k, v]) => `${k}=${v}`);
 
+        // 7. Формируем data_check_string
+        const dataCheckString = dataCheckArr.join('\n');
         console.log('DataCheckString:', dataCheckString);
 
-        // 7. Генерируем HMAC-подпись
+        // 8. Генерация HMAC
         const secret = crypto.createHmac('sha256', 'WebAppData')
             .update(botToken)
             .digest();
@@ -44,14 +50,14 @@ export const validateTelegramData = (initData, botToken) => {
         console.log('Computed signature:', signature);
         console.log('Received hash:', hash);
 
-        console.log(botToken)
-        // 8. Возвращаем результат сравнения
         return signature === hash;
     } catch (error) {
         console.error('Validation error:', error);
         return false;
     }
 };
+
+
 
 export const parseTelegramData = (initData) => {
     try {
