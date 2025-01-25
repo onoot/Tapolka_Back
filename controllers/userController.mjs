@@ -23,49 +23,26 @@ export const getTime = () => {
 
 export const login = async (req, res) => {
   try {
-    // 1. Получаем данные из тела запроса
     const initData = req.body;
-    console.log('Raw initData:', JSON.stringify(initData, null, 2));
-
-    const {user} = initData;
-    // 2. Проверка наличия обязательных полей
-    const requiredFields = ['query_id', 'user', 'auth_date', 'hash', 'signature'];
-    const missingFields = requiredFields.filter(field => !initData[field]);
     
-    if (missingFields.length > 0) {
-        return res.status(400).json({ 
-            message: `Missing required fields: ${missingFields.join(', ')}` 
-        });
+    if (!initData) {
+      return res.status(400).json({ message: 'Missing initData' });
     }
 
-    // 3. Сериализация user с контролем ошибок
-    let userString;
-    try {
-        userString = encodeURIComponent(JSON.stringify(initData.user));
-    } catch (e) {
-        console.error('User serialization error:', e);
-        return res.status(400).json({ message: 'Invalid user data format' });
+    const { query_id, user, auth_date, hash } = req.body;
+
+    // Проверяем наличие всех необходимых данных
+    if (!user || typeof user === 'undefined') {
+      return res.status(400).json({ message: 'Invalid user data' });
     }
 
-    // 4. Формируем строку для валидации
-    const validationData = new URLSearchParams();
-    validationData.append('query_id', initData.query_id);
-    validationData.append('user', userString);
-    validationData.append('auth_date', initData.auth_date);
-    validationData.append('hash', initData.hash);
-    validationData.append('signature', initData.signature);
-
-    console.log('Validation data:', validationData.toString());
-
-    // 5. Валидация данных
-    if (!validateTelegramData(validationData, process.env.BOT_TOKEN)) {
-        return res.status(401).json({ message: 'Telegram validation failed' });
+    // Валидация данных от Telegram
+    const telegramData = { query_id, user, auth_date, hash };
+    if (!validateTelegramData(telegramData, SECRET_BOT_TOKEN)) {
+      return res.status(401).json({ message: 'Invalid Telegram data validation' });
     }
 
-    // 6. Декодирование user
-    const parsedUser = JSON.parse(decodeURIComponent(userString));
-    console.log('Parsed user:', parsedUser);
-
+    // Проверка или создание пользователя в базе данных
     let existingUser = await User.findOne({
       where: { telegramId: user.id.toString() }, // Преобразуем id в строку
       include: { model: Role, as: 'role', attributes: ['name'] },
@@ -188,26 +165,10 @@ export const login = async (req, res) => {
       return itemDateString === todayDateString;
     });
 
-    // Восстановление fullEnergi
-    if (existingUser) {
-      const boost = existingUser.boost || {};
-      if (boost.fullEnergi) {
-        const lastUpdate = new Date(boost.fullEnergi.dateLastUpdate);
-        const now = new Date();
-        
-        if ((now - lastUpdate) >= 12 * 60 * 60 * 1000) { // 12 часов в миллисекундах
-          boost.fullEnergi.count = boost.fullEnergi.max_count;
-          boost.fullEnergi.dateLastUpdate = now.toISOString();
-          
-          await existingUser.update({ boost: boost });
-        }
-      }
-    }
-
-    const winCombo = win.date > filteredData[0]?.Data ? [] : existingUser.combo_daily_tasks;
-    if (win.date > filteredData[0]?.Data) {
-      existingUser.combo_daily_tasks = [];
-      await existingUser.save();
+    const winCombo = win.date > filteredD[0]?.Data ? [] : user.combo_daily_tasks;
+    if (win.date > filteredD[0]?.Data) {
+      user.combo_daily_tasks = [];
+      await user.save();
     }
 
     // Формирование объекта ответа
@@ -236,7 +197,7 @@ export const login = async (req, res) => {
     });
   } catch (e) {
     console.error(e);
-    return res.status(500).json({ message: 'Internal error' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };
 

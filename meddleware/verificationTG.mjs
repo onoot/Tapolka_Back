@@ -1,9 +1,9 @@
 import crypto from 'crypto';
 
-export const validateTelegramData = (searchParams, botToken) => {
+export const validateTelegramData = (initData, botToken) => {
     try {
         // Преобразуем строку initData в объект URLSearchParams
-        // const searchParams = new URLSearchParams(initData);
+        const searchParams = new URLSearchParams(initData);
         
         // Получаем hash из параметров
         const hash = searchParams.get('hash');
