@@ -3,7 +3,7 @@ import crypto from 'crypto';
 export const validateTelegramData = (initData, botToken) => {
     try {
         const reInitData = initData.user;
-        const test = JSON.stringify(reInitData);
+        const test = encodeURIComponent(JSON.stringify(reInitData));
         initData.user = test;
         console.log(test)
         // Преобразуем строку initData в объект URLSearchParams
