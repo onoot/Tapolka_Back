@@ -25,6 +25,7 @@ export const login = async (req, res) => {
   try {
      // Получаем сырую строку initData из тела или query параметров
      const rawInitData = req.body.initData || req.query.initData;
+     console.log("initData ", rawInitData)
     
      if (!rawInitData) {
        return res.status(400).json({ message: 'Missing initData' });
@@ -226,7 +227,7 @@ export const login = async (req, res) => {
     });
   } catch (e) {
     console.error(e);
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: 'Internal error' });
   }
 };
 
