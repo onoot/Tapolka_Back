@@ -17,7 +17,7 @@ export const prepareTransaction = async (req, res) => {
     }
 
     const { senderAddress, recipientAddress, amount, userId } = req.body;
-
+    console.log(req.body)
     if (!senderAddress || !recipientAddress || !amount || !userId) {
       return res.status(400).json({ error: "Invalid input" });
     }
