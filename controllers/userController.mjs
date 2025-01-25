@@ -23,64 +23,49 @@ export const getTime = () => {
 
 export const login = async (req, res) => {
   try {
-    let initData = req.body || req.query;
+    // 1. Получаем данные из тела запроса
+    const initData = req.body;
+    console.log('Raw initData:', JSON.stringify(initData, null, 2));
 
-    if (!initData) {
-      return res.status(400).json({ message: 'Missing initData' });
-    }
-    // 1. Получаем данные из запроса
-    console.log('Raw initData:', initData);
-
-    // 2. Процедурное извлечение полей
-    const fields = [
-      'query_id',
-      'user',
-      'auth_date',
-      'hash',
-      'signature'
-    ];
-
-    const extractedData = {};
-    for (const field of fields) {
-      extractedData[field] = initData[field];
+    const {user} = initData;
+    // 2. Проверка наличия обязательных полей
+    const requiredFields = ['query_id', 'user', 'auth_date', 'hash', 'signature'];
+    const missingFields = requiredFields.filter(field => !initData[field]);
+    
+    if (missingFields.length > 0) {
+        return res.status(400).json({ 
+            message: `Missing required fields: ${missingFields.join(', ')}` 
+        });
     }
 
-    // 3. Проверка обязательных полей
-    if (!extractedData.user || !extractedData.hash) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-
-    // 4. Преобразование user в строку
+    // 3. Сериализация user с контролем ошибок
     let userString;
     try {
-      userString = typeof extractedData.user === 'string'
-        ? extractedData.user // если уже строка
-        : encodeURIComponent(JSON.stringify(extractedData.user)); // если объект
+        userString = encodeURIComponent(JSON.stringify(initData.user));
     } catch (e) {
-      console.error('User serialization error:', e);
-      return res.status(400).json({ message: 'Invalid user format' });
+        console.error('User serialization error:', e);
+        return res.status(400).json({ message: 'Invalid user data format' });
     }
 
-    // 5. Собираем данные для валидации
+    // 4. Формируем строку для валидации
     const validationData = new URLSearchParams();
-    for (const [key, value] of Object.entries(extractedData)) {
-      if (key === 'user') {
-        validationData.append(key, userString);
-      } else if (value !== undefined && value !== null) {
-        validationData.append(key, value);
-      }
-    }
+    validationData.append('query_id', initData.query_id);
+    validationData.append('user', userString);
+    validationData.append('auth_date', initData.auth_date);
+    validationData.append('hash', initData.hash);
+    validationData.append('signature', initData.signature);
 
-    // 6. Валидация данных
-    console.log('Data for validation:', validationData.toString());
+    console.log('Validation data:', validationData.toString());
+
+    // 5. Валидация данных
     if (!validateTelegramData(validationData.toString(), process.env.BOT_TOKEN)) {
-      return res.status(401).json({ message: 'Telegram validation failed' });
+        return res.status(401).json({ message: 'Telegram validation failed' });
     }
 
-    // 7. Парсинг пользователя
+    // 6. Декодирование user
     const parsedUser = JSON.parse(decodeURIComponent(userString));
     console.log('Parsed user:', parsedUser);
-    // Проверка или создание пользователя в базе данных
+
     let existingUser = await User.findOne({
       where: { telegramId: user.id.toString() }, // Преобразуем id в строку
       include: { model: Role, as: 'role', attributes: ['name'] },
