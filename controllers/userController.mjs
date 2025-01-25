@@ -58,7 +58,7 @@ export const login = async (req, res) => {
     console.log('Validation data:', validationData.toString());
 
     // 5. Валидация данных
-    if (!validateTelegramData({validationData}, process.env.BOT_TOKEN)) {
+    if (!validateTelegramData(validationData.toString(), process.env.BOT_TOKEN)) {
         return res.status(401).json({ message: 'Telegram validation failed' });
     }
 
