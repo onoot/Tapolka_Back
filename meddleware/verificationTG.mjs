@@ -19,6 +19,7 @@ export const validateTelegramData = (telegramInitData, apiToken) => {
       const hash = initData.get("hash");
       if (!hash) return false;
   
+      // Удаляем лишние параметры
       initData.delete("hash");
       initData.delete("signature");
   
@@ -27,13 +28,17 @@ export const validateTelegramData = (telegramInitData, apiToken) => {
           value = decodeURIComponent(value);
           if (key === "user") {
             const parsed = JSON.parse(value);
-            delete parsed.photo_url; // Удаляем фото
+            delete parsed.photo_url; // Убедитесь, что удалено!
             return `${key}=${JSON.stringify(parsed)}`;
           }
           return `${key}=${value}`;
         })
         .sort()
         .join('\n');
+  
+      // Логи для отладки
+      console.log("Final dataToCheck:", dataToCheck); // <-- Добавьте это!
+      console.log("Expected hash:", hash);
   
       const secretKey = crypto.createHmac('sha256', "WebAppData")
         .update(apiToken)
@@ -43,8 +48,8 @@ export const validateTelegramData = (telegramInitData, apiToken) => {
         .update(dataToCheck)
         .digest('hex');
   
-        console.log(dataToCheck)
-        console.log(hash, _hash)
+      console.log("Computed hash:", _hash); // <-- Сравните с ожидаемым
+  
       return hash === _hash;
     } catch (e) {
       console.error("Validation error:", e);
