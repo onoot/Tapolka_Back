@@ -20,7 +20,7 @@ export const prepareTransaction = async (req, res) => {
         
        // 1. Преобразуем userId к строке
        const userIdString = String(userId);
-        console.log(userIdString)
+        console.log(JSON.stringify(userIdString));
        // 2. Поиск пользователя
        const user = await User.findOne({ 
            where: { telegramId: userIdString } // Используем строковый формат
