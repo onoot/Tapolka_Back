@@ -43,6 +43,8 @@ export const validateTelegramData = (telegramInitData, apiToken) => {
         .update(dataToCheck)
         .digest('hex');
   
+        console.log(dataToCheck)
+        console.log(hash, _hash)
       return hash === _hash;
     } catch (e) {
       console.error("Validation error:", e);
