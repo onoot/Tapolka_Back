@@ -22,7 +22,7 @@ export const validateTelegramData = (telegramInitData, apiToken) =>  {
         if (!hash) return false;
         // Удаляем хеш из параметров
         initData.delete("hash");
-       
+        initData.delete("signature"); 
         // Сортируем параметры и создаем строку data_check_string
         const dataToCheck = [...initData.entries()]
             .map(([key, value]) => {
