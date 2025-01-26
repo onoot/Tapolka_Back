@@ -14,8 +14,8 @@ import crypto from 'crypto';
  */
 export const validateTelegramData = (initData, botToken) =>  {
     try{
-        console.log('telegramInitData:' , telegramInitData)
-        const initData = new URLSearchParams(telegramInitData);
+        console.log('initData:' , initData)
+        const initData = new URLSearchParams(initData);
         console.log('initData:' , initData)
         // Получаем хеш из параметров
         const hash = initData.get("hash");
