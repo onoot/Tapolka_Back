@@ -1,44 +1,25 @@
 import crypto from 'crypto';
-
-export const validateTelegramData = (initData, botToken) => {
+export const validateTelegramData = (initDataString, botToken) => {
     try {
-        // 1. Создаем копию объекта, чтобы не мутировать оригинальные данные
-        const encodedData = {};
-        
-        // 2. Кодируем все поля через encodeURIComponent
-        for (const [key, value] of Object.entries(initData)) {
-            if (typeof value === 'object') {
-                encodedData[key] = encodeURIComponent(JSON.stringify(value));
-            } else {
-                encodedData[key] = encodeURIComponent(value);
-            }
-        }
-
-        // 3. Формируем URLSearchParams из закодированных данных
-        const params = new URLSearchParams(encodedData);
-        console.log('Encoded params:', params.toString());
-
-        // 4. Извлекаем хеш
+        const params = new URLSearchParams(initDataString);
         const hash = params.get('hash');
+        
         if (!hash) {
             console.error('Hash not found');
             return false;
         }
 
-        // 5. Создаем клон параметров без hash
-        const checkParams = new URLSearchParams(params.toString());
+        // Создаем клон без hash
+        const checkParams = new URLSearchParams(initDataString);
         checkParams.delete('hash');
 
-        // 6. Сортировка параметров по алфавиту
-        const dataCheckArr = Array.from(checkParams.entries())
+        // Сортировка и формирование data_check_string
+        const dataCheckString = Array.from(checkParams.entries())
             .sort(([a], [b]) => a.localeCompare(b))
-            .map(([k, v]) => `${k}=${v}`);
+            .map(([k, v]) => `${k}=${v}`)
+            .join('\n');
 
-        // 7. Формируем data_check_string
-        const dataCheckString = dataCheckArr.join('\n');
-        console.log('DataCheckString:', dataCheckString);
-
-        // 8. Генерация HMAC
+        // Генерация HMAC
         const secret = crypto.createHmac('sha256', 'WebAppData')
             .update(botToken)
             .digest();
@@ -47,15 +28,13 @@ export const validateTelegramData = (initData, botToken) => {
             .update(dataCheckString)
             .digest('hex');
 
-        console.log('Computed signature:', signature);
-        console.log('Received hash:', hash);
-
         return signature === hash;
     } catch (error) {
         console.error('Validation error:', error);
         return false;
     }
 };
+
 
 
 

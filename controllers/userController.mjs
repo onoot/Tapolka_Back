@@ -23,29 +23,30 @@ export const getTime = () => {
 
 export const login = async (req, res) => {
   try {
-    const initData = req.body;
-    
-    if (!initData) {
-      return res.status(400).json({ message: 'Missing initData' });
-    }
+     // 1. Получаем сырые данные
+     const rawData = req.body;
+        
+     // 2. Парсим данные
+     const params = new URLSearchParams(rawData);
+     const user = JSON.parse(decodeURIComponent(params.get('user')));
+     const initData = {
+         query_id: params.get('query_id'),
+         user,
+         auth_date: params.get('auth_date'),
+         hash: params.get('hash'),
+         signature: params.get('signature')
+     };
 
-    const {user } = initData;
+     // 3. Валидация
+     if (!validateTelegramData(rawData, process.env.SECRET_BOT_TOKEN)) {
+         return res.status(401).json({ message: 'Invalid Telegram validation' });
+     }
 
-    // Проверяем наличие всех необходимых данных
-    if (!user || typeof user === 'undefined') {
-      return res.status(400).json({ message: 'Invalid user data' });
-    }
-
-    // // Валидация данных от Telegram
-    // if (!validateTelegramData(initData, SECRET_BOT_TOKEN)) {
-    //   return res.status(401).json({ message: 'Invalid Telegram data validation' });
-    // }
-
-    // Проверка или создание пользователя в базе данных
-    let existingUser = await User.findOne({
-      where: { telegramId: user.id.toString() }, // Преобразуем id в строку
-      include: { model: Role, as: 'role', attributes: ['name'] },
-    });
+     // 4. Поиск/создание пользователя
+     let existingUser = await User.findOne({
+         where: { telegramId: user.id.toString() },
+         include: { model: Role, as: 'role' }
+     });
 
     if (!existingUser) {
       const defaultBoost = {
