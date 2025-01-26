@@ -1,39 +1,38 @@
 import crypto from 'crypto';
 
-export const validateTelegramData = (initDataString, botToken) => {
+export const validateTelegramData = (initData, botToken) => {
     try {
-        const params = new URLSearchParams(initDataString);
-        const hash = params.get('hash');
+        // Преобразуем строку initData в объект URLSearchParams
+        const searchParams = new URLSearchParams(initData);
         
-        if (!hash) {
-            console.error('Hash not found');
-            return false;
-        }
-
-        // Создаем клон без hash
-        const checkParams = new URLSearchParams(initDataString);
-        checkParams.delete('hash');
-
-        // Сортировка и формирование data_check_string
-        const dataCheckString = Array.from(checkParams.entries())
+        // Получаем hash из параметров
+        const hash = searchParams.get('hash');
+        if (!hash) return false;
+        
+        // Удаляем hash из проверяемых данных
+        searchParams.delete('hash');
+        
+        // Сортируем оставшиеся параметры
+        const dataCheckArr = Array.from(searchParams.entries())
             .sort(([a], [b]) => a.localeCompare(b))
-            .map(([k, v]) => `${k}=${v}`)
-            .join('\n');
-
-        // Генерация HMAC
+            .map(([key, value]) => `${key}=${value}`);
+            
+        // Создаем строку для проверки
+        const dataCheckString = dataCheckArr.join('\n');
+        
+        // Создаем HMAC
         const secret = crypto.createHmac('sha256', 'WebAppData')
             .update(botToken)
             .digest();
-
+            
+        // Вычисляем и сравниваем подпись
         const signature = crypto.createHmac('sha256', secret)
             .update(dataCheckString)
             .digest('hex');
-            console.log(initDataString)
-            console.log(dataCheckString)
-
+            
         return signature === hash;
     } catch (error) {
-        console.error('Validation error:', error);
+        console.error('Ошибка валидации данных Telegram:', error);
         return false;
     }
 };

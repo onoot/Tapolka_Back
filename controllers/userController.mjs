@@ -23,30 +23,29 @@ export const getTime = () => {
 
 export const login = async (req, res) => {
   try {
-    const { query_id, user, auth_date, hash, signature } = req.body;
-
-    // Проверка обязательных полей
-    if (!query_id || !user?.id || !auth_date || !hash || !signature) {
-        return res.status(400).json({ message: 'Missing required fields' });
+    const initData = req.body || req.query;
+    
+    if (!initData) {
+      return res.status(400).json({ message: 'Missing initData' });
     }
 
-    // Формируем строку для валидации
-    const validationData = new URLSearchParams();
-    validationData.append('query_id', query_id);
-    validationData.append('user', encodeURIComponent(JSON.stringify(user)));
-    validationData.append('auth_date', auth_date);
-    validationData.append('hash', hash);
-    validationData.append('signature', signature);
+    const { query_id, user, auth_date, hash } = req.body;
 
-    // Валидация данных Telegram
-    if (!validateTelegramData(validationData.toString(), process.env.SECRET_BOT_TOKEN)) {
-        return res.status(401).json({ message: 'Invalid Telegram validation' });
+    // Проверяем наличие всех необходимых данных
+    if (!user || typeof user === 'undefined') {
+      return res.status(400).json({ message: 'Invalid user data' });
     }
 
-    // Поиск/создание пользователя
+    // Валидация данных от Telegram
+    const telegramData = { query_id, user, auth_date, hash };
+    if (!validateTelegramData(telegramData, SECRET_BOT_TOKEN)) {
+      return res.status(401).json({ message: 'Invalid Telegram data validation' });
+    }
+
+    // Проверка или создание пользователя в базе данных
     let existingUser = await User.findOne({
-        where: { telegramId: user.id.toString() },
-        include: { model: Role, as: 'role' }
+      where: { telegramId: user.id.toString() }, // Преобразуем id в строку
+      include: { model: Role, as: 'role', attributes: ['name'] },
     });
 
     if (!existingUser) {
