@@ -12,30 +12,28 @@ import crypto from 'crypto';
  *
  * @returns {boolean} - True if the data is valid, false otherwise
  */
+
 export const validateTelegramData = (telegramInitData, apiToken) => {
     try {
       const initData = new URLSearchParams(telegramInitData);
       const hash = initData.get("hash");
       if (!hash) return false;
   
-      // Удаляем ненужные параметры
       initData.delete("hash");
-      initData.delete("signature"); // Важно!
+      initData.delete("signature");
   
       const dataToCheck = [...initData.entries()]
         .map(([key, value]) => {
           value = decodeURIComponent(value);
           if (key === "user") {
             const parsed = JSON.parse(value);
-            // delete parsed.photo_url; // Раскомментировать, если нужно убрать фото
+            delete parsed.photo_url; // Удаляем фото
             return `${key}=${JSON.stringify(parsed)}`;
           }
           return `${key}=${value}`;
         })
-        .sort() // Сортировка по алфавиту
+        .sort()
         .join('\n');
-  
-      console.log("Correct dataToCheck:", dataToCheck);
   
       const secretKey = crypto.createHmac('sha256', "WebAppData")
         .update(apiToken)
