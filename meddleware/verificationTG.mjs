@@ -28,6 +28,8 @@ export const validateTelegramData = (initDataString, botToken) => {
         const signature = crypto.createHmac('sha256', secret)
             .update(dataCheckString)
             .digest('hex');
+            console.log(initDataString)
+            console.log(dataCheckString)
 
         return signature === hash;
     } catch (error) {
