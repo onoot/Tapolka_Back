@@ -23,30 +23,31 @@ export const getTime = () => {
 
 export const login = async (req, res) => {
   try {
-     // 1. Получаем сырые данные
-     const rawData = req.body;
-        
-     // 2. Парсим данные
-     const params = new URLSearchParams(rawData);
-     const user = JSON.parse(decodeURIComponent(params.get('user')));
-     const initData = {
-         query_id: params.get('query_id'),
-         user,
-         auth_date: params.get('auth_date'),
-         hash: params.get('hash'),
-         signature: params.get('signature')
-     };
+    const { query_id, user, auth_date, hash, signature } = req.body;
 
-     // 3. Валидация
-     if (!validateTelegramData(rawData, process.env.SECRET_BOT_TOKEN)) {
-         return res.status(401).json({ message: 'Invalid Telegram validation' });
-     }
+    // Проверка обязательных полей
+    if (!query_id || !user?.id || !auth_date || !hash || !signature) {
+        return res.status(400).json({ message: 'Missing required fields' });
+    }
 
-     // 4. Поиск/создание пользователя
-     let existingUser = await User.findOne({
-         where: { telegramId: user.id.toString() },
-         include: { model: Role, as: 'role' }
-     });
+    // Формируем строку для валидации
+    const validationData = new URLSearchParams();
+    validationData.append('query_id', query_id);
+    validationData.append('user', encodeURIComponent(JSON.stringify(user)));
+    validationData.append('auth_date', auth_date);
+    validationData.append('hash', hash);
+    validationData.append('signature', signature);
+
+    // Валидация данных Telegram
+    if (!validateTelegramData(validationData.toString(), process.env.SECRET_BOT_TOKEN)) {
+        return res.status(401).json({ message: 'Invalid Telegram validation' });
+    }
+
+    // Поиск/создание пользователя
+    let existingUser = await User.findOne({
+        where: { telegramId: user.id.toString() },
+        include: { model: Role, as: 'role' }
+    });
 
     if (!existingUser) {
       const defaultBoost = {

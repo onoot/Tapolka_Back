@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+
 export const validateTelegramData = (initDataString, botToken) => {
     try {
         const params = new URLSearchParams(initDataString);
@@ -34,9 +35,6 @@ export const validateTelegramData = (initDataString, botToken) => {
         return false;
     }
 };
-
-
-
 
 export const parseTelegramData = (initData) => {
     try {
