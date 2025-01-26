@@ -12,7 +12,6 @@ import crypto from 'crypto';
  *
  * @returns {boolean} - True if the data is valid, false otherwise
  */
-
 export const validateTelegramData = (initData, botToken) => {
     try {
         // Если initData - объект, преобразуем его в строку URLSearchParams
@@ -42,7 +41,14 @@ export const validateTelegramData = (initData, botToken) => {
         // Сортируем оставшиеся параметры
         const dataCheckArr = Array.from(searchParams.entries())
             .sort(([a], [b]) => a.localeCompare(b))
-            .map(([key, value]) => `${key}=${value}`);
+            .map(([key, value]) => {
+                // Если это поле user, декодируем его
+                if (key === 'user') {
+                    const userObj = JSON.parse(decodeURIComponent(value));
+                    return `${key}=${JSON.stringify(userObj)}`; // Используем читаемый JSON
+                }
+                return `${key}=${value}`;
+            });
             
         // Создаем строку для проверки
         const dataCheckString = dataCheckArr.join('\n');
@@ -67,6 +73,8 @@ export const validateTelegramData = (initData, botToken) => {
         return false;
     }
 };
+
+
 /**
  * Парсит данные, полученные от Telegram.
  * 
