@@ -2,9 +2,9 @@ import TonWeb from 'tonweb';
 import { v4 as uuidv4 } from "uuid";
 import { VerifJWT } from "./userController.mjs";
 import Payment from "../models/Payment.mjs";
-import History from "../models/History.mjs";
 import User from "../models/User.mjs";
 import sequelize from "../config/database.mjs";
+import History from "../models/History.mjs";
  
 const tonweb = new TonWeb(new TonWeb.HttpProvider('https://toncenter.com/api/v2/jsonRPC', {
     apiKey: process.env.TONCENTER_API_KEY 

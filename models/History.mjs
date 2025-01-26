@@ -1,4 +1,3 @@
-// models/History.mjs
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.mjs';
 
@@ -36,25 +35,25 @@ const History = sequelize.define('History', {
   status: {
     type: DataTypes.ENUM('pending', 'completed', 'failed'),
     defaultValue: 'pending'
+  },
+  userId: { // Явное определение
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'users',
+      key: 'id'
+    }
   }
 }, {
   tableName: 'histories',
   indexes: [
     {
-      fields: ['userId']
+      fields: ['userId'] // Корректное имя поля
     },
     {
       fields: ['createdAt']
     }
   ]
 });
-
-// Связь с пользователем
-History.associate = models => {
-  History.belongsTo(models.User, {
-    foreignKey: 'userId',
-    as: 'user'
-  });
-};
 
 export default History;
