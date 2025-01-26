@@ -1,9 +1,36 @@
 import crypto from 'crypto';
+/**
+ * Checks if the given initData is a valid Telegram authorization data.
+ * initData can be either a string or an object with the following properties:
+ * - query_id: string
+ * - user: object
+ * - auth_date: string
+ * - hash: string
+ *
+ * @param {string|object} initData - The data to check
+ * @param {string} botToken - The bot token
+ *
+ * @returns {boolean} - True if the data is valid, false otherwise
+ */
+
 export const validateTelegramData = (initData, botToken) => {
-    console.log('initData:', initData);
     try {
+        // Если initData - объект, преобразуем его в строку URLSearchParams
+        let initDataString;
+        if (typeof initData === 'object') {
+            const params = new URLSearchParams();
+            params.append('query_id', initData.query_id);
+            params.append('user', encodeURIComponent(JSON.stringify(initData.user)));
+            params.append('auth_date', initData.auth_date);
+            params.append('hash', initData.hash);
+            params.append('signature', initData.signature);
+            initDataString = params.toString();
+        } else {
+            initDataString = initData;
+        }
+
         // Преобразуем строку initData в объект URLSearchParams
-        const searchParams = new URLSearchParams(initData);
+        const searchParams = new URLSearchParams(initDataString);
         
         // Получаем hash из параметров
         const hash = searchParams.get('hash');
@@ -15,14 +42,7 @@ export const validateTelegramData = (initData, botToken) => {
         // Сортируем оставшиеся параметры
         const dataCheckArr = Array.from(searchParams.entries())
             .sort(([a], [b]) => a.localeCompare(b))
-            .map(([key, value]) => {
-                // Если это поле user, декодируем и сериализуем
-                if (key === 'user') {
-                    const userObj = JSON.parse(decodeURIComponent(value));
-                    return `${key}=${encodeURIComponent(JSON.stringify(userObj))}`;
-                }
-                return `${key}=${value}`;
-            });
+            .map(([key, value]) => `${key}=${value}`);
             
         // Создаем строку для проверки
         const dataCheckString = dataCheckArr.join('\n');
@@ -47,6 +67,17 @@ export const validateTelegramData = (initData, botToken) => {
         return false;
     }
 };
+/**
+ * Парсит данные, полученные от Telegram.
+ * 
+ * @param {string} initData Строка с данными, полученными от Telegram
+ * @returns {Object} Объект со следующими полями:
+ *  - query_id: {string} ID запроса
+ *  - user: {Object} Объект с информацией о пользователе
+ *  - auth_date: {string} Дата авторизации
+ *  - hash: {string} Хэш, по которому можно проверить подлинность данных
+ * @throws {Error} Ошибка парсинга данных
+ */
 export const parseTelegramData = (initData) => {
     try {
         const searchParams = new URLSearchParams(initData);
