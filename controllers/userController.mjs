@@ -23,6 +23,11 @@ export const getTime = () => {
 
 export const login = async (req, res) => {
   try {
+    const initData = req.body || req.query;
+    
+    if (!initData) {
+      return res.status(400).json({ message: 'Missing initData' });
+    }
     // Шаг 1: Парсим данные пользователя
     let user;
     try {
