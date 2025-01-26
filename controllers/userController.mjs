@@ -44,7 +44,7 @@ export const login = async (req, res) => {
 
     // Проверка или создание пользователя в базе данных
     let existingUser = await User.findOne({
-      where: { telegramId: user.id.toString() }, // Преобразуем id в строку
+      where: { telegramId: user?.id }, 
       include: { model: Role, as: 'role', attributes: ['name'] },
     });
 
