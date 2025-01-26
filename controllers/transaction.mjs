@@ -18,23 +18,26 @@ export const prepareTransaction = async (req, res) => {
 
         const { senderAddress, recipientAddress, amount, userId } = req.body;
         
-        // 1. Проверка существования пользователя
-        const user = await User.findOne({ 
-            where: { telegramId: userId } 
-        },);
-        if (!user) {
-            return res.status(400).json({ 
-                error: "User not found. Complete registration first." 
-            });
-        }
+       // 1. Преобразуем userId к строке
+       const userIdString = String(userId);
+        console.log(userIdString)
+       // 2. Поиск пользователя
+       const user = await User.findOne({ 
+           where: { telegramId: userIdString } // Используем строковый формат
+       });
 
-        // 2. Проверка типа данных userId
-        if (typeof user.id !== 'number') {
-            return res.status(400).json({
-                error: "Invalid user ID format"
-            });
-        }
+       if (!user) {
+           return res.status(400).json({ 
+               error: "User not found. Complete registration first." 
+           });
+       }
 
+       // 3. Проверка типа данных
+       if (typeof user.id !== 'number') {
+           return res.status(400).json({
+               error: "Invalid user ID format"
+           });
+       }
         // 3. Создание платежа в транзакции
         const transaction = await sequelize.transaction();
         
