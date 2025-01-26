@@ -37,10 +37,10 @@ export const login = async (req, res) => {
     }
 
     // Валидация данных от Telegram
-    const telegramData = { query_id, user, auth_date, hash };
-    if (!validateTelegramData(initData, SECRET_BOT_TOKEN)) {
-      return res.status(401).json({ message: 'Invalid Telegram data validation' });
-    }
+    // const telegramData = { query_id, user, auth_date, hash };
+    // if (!validateTelegramData(initData, SECRET_BOT_TOKEN)) {
+    //   return res.status(401).json({ message: 'Invalid Telegram data validation' });
+    // }
 
     // Проверка или создание пользователя в базе данных
     let existingUser = await User.findOne({
