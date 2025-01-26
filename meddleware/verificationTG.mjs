@@ -1,5 +1,4 @@
 import crypto from 'crypto';
-
 export const validateTelegramData = (initData, botToken) => {
     try {
         // Преобразуем строку initData в объект URLSearchParams
@@ -15,7 +14,14 @@ export const validateTelegramData = (initData, botToken) => {
         // Сортируем оставшиеся параметры
         const dataCheckArr = Array.from(searchParams.entries())
             .sort(([a], [b]) => a.localeCompare(b))
-            .map(([key, value]) => `${key}=${value}`);
+            .map(([key, value]) => {
+                // Если это поле user, декодируем и сериализуем
+                if (key === 'user') {
+                    const userObj = JSON.parse(decodeURIComponent(value));
+                    return `${key}=${encodeURIComponent(JSON.stringify(userObj))}`;
+                }
+                return `${key}=${value}`;
+            });
             
         // Создаем строку для проверки
         const dataCheckString = dataCheckArr.join('\n');
@@ -30,15 +36,16 @@ export const validateTelegramData = (initData, botToken) => {
             .update(dataCheckString)
             .digest('hex');
             
-            // Возвращаем результат новой строки
-        console.log(dataCheckString, signature, hash);
+        console.log('DataCheckString:', dataCheckString);
+        console.log('Computed signature:', signature);
+        console.log('Received hash:', hash);
+        
         return signature === hash;
     } catch (error) {
         console.error('Ошибка валидации данных Telegram:', error);
         return false;
     }
 };
-
 export const parseTelegramData = (initData) => {
     try {
         const searchParams = new URLSearchParams(initData);
