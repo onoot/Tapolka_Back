@@ -30,6 +30,8 @@ export const validateTelegramData = (initData, botToken) => {
             .update(dataCheckString)
             .digest('hex');
             
+            // Возвращаем результат новой строки
+        console.log(dataCheckString, signature, hash);
         return signature === hash;
     } catch (error) {
         console.error('Ошибка валидации данных Telegram:', error);
