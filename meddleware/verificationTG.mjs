@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 export const validateTelegramData = (initData, botToken) => {
+    console.log('initData:', initData);
     try {
         // Преобразуем строку initData в объект URLSearchParams
         const searchParams = new URLSearchParams(initData);
