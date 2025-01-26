@@ -12,66 +12,48 @@ import crypto from 'crypto';
  *
  * @returns {boolean} - True if the data is valid, false otherwise
  */
-export const validateTelegramData = (initData, botToken) => {
-    try {
-        // Если initData - объект, преобразуем его в строку URLSearchParams
-        let initDataString;
-        if (typeof initData === 'object') {
-            const params = new URLSearchParams();
-            params.append('query_id', initData.query_id);
-            params.append('user', encodeURIComponent(JSON.stringify(initData.user)));
-            params.append('auth_date', initData.auth_date);
-            params.append('hash', initData.hash);
-            params.append('signature', initData.signature);
-            initDataString = params.toString();
-        } else {
-            initDataString = initData;
-        }
-
-        // Преобразуем строку initData в объект URLSearchParams
-        const searchParams = new URLSearchParams(initDataString);
-        
-        // Получаем hash из параметров
-        const hash = searchParams.get('hash');
+export const validateTelegramData = (initData, botToken) =>  {
+    try{
+        console.log('telegramInitData:' , telegramInitData)
+        const initData = new URLSearchParams(telegramInitData);
+        console.log('initData:' , initData)
+        // Получаем хеш из параметров
+        const hash = initData.get("hash");
         if (!hash) return false;
-        
-        // Удаляем hash из проверяемых данных
-        searchParams.delete('hash');
-        
-        // Сортируем оставшиеся параметры
-        const dataCheckArr = Array.from(searchParams.entries())
-            .sort(([a], [b]) => a.localeCompare(b))
+        // Удаляем хеш из параметров
+        initData.delete("hash");
+       
+        // Сортируем параметры и создаем строку data_check_string
+        const dataToCheck = [...initData.entries()]
             .map(([key, value]) => {
-                // Если это поле user, декодируем его
-                if (key === 'user') {
-                    const userObj = JSON.parse(decodeURIComponent(value));
-                    return `${key}=${JSON.stringify(userObj)}`; // Используем читаемый JSON
+                if (key == "user") {                
+                  let new_value =  JSON.parse(decodeURIComponent(value)) ; // Декодируем и возвращаем в JSON для правильной сортировки
+                //  console.log('new_value:' , new_value)
+                //  delete new_value.photo_url
+    
+                  value = JSON.stringify(new_value)
+                } else {
+                    value = decodeURIComponent(value);
                 }
                 return `${key}=${value}`;
-            });
-            
-        // Создаем строку для проверки
-        const dataCheckString = dataCheckArr.join('\n');
-        
-        // Создаем HMAC
-        const secret = crypto.createHmac('sha256', 'WebAppData')
-            .update(botToken)
-            .digest();
-            
-        // Вычисляем и сравниваем подпись
-        const signature = crypto.createHmac('sha256', secret)
-            .update(dataCheckString)
-            .digest('hex');
-            
-        console.log('DataCheckString:', dataCheckString);
-        console.log('Computed signature:', signature);
-        console.log('Received hash:', hash);
-        
-        return signature === hash;
-    } catch (error) {
-        console.error('Ошибка валидации данных Telegram:', error);
+            })
+            .sort()
+            .join('\n');
+        console.log("dataToCheck:", dataToCheck);
+        // Генерация секретного ключа с использованием HMAC_SHA256 и apiToken
+        const secretKey = crypto.createHmac('sha256', "WebAppData").update(apiToken).digest();
+        console.log("secretKey:", secretKey);
+        // Создаем HMAC хеш с использованием secretKey и строки данных
+        const _hash = crypto.createHmac('sha256', secretKey).update(dataToCheck).digest('hex');
+        console.log("Original hash:", hash);
+        console.log("Computed hash:", _hash);
+    
+        return hash === _hash;
+    }catch(e){
+        console.log(e)
         return false;
     }
+   
 };
 
 
