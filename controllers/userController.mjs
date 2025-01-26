@@ -28,6 +28,7 @@ export const login = async (req, res) => {
     try {
       user = JSON.parse(initData.user); // Декодируем JSON-строку
     } catch (e) {
+      console.log(user)
       return res.status(400).json({ message: 'Invalid user data format' });
     }
 
