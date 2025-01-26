@@ -2,6 +2,7 @@ import TonWeb from 'tonweb';
 import { v4 as uuidv4 } from "uuid";
 import { VerifJWT } from "./userController.mjs";
 import Payment from "../models/Payment.mjs";
+import History from "../models/History.mjs";
 import User from "../models/User.mjs";
 import sequelize from "../config/database.mjs";
  
@@ -123,21 +124,43 @@ export const sendTransaction = async (req, res) => {
 
 export const checkTransaction = async (req, res) => {
     try {
-        const { txHash } = req.body;
-        const txInfo = await tonweb.provider.getTransaction(txHash);
-    
-        if (txInfo && txInfo.status === "confirmed") {
-          // Обновление статуса платежа в базе данных
-          const payment = await Payment.findOne({ where: { txHash } });
-          payment.status = "confirmed";
-    
-          // Начисление бонусов
-          await BonusService.addBonus(payment.userId, payment.amount);
-    
-          await payment.save();
-          console.log("Transaction confirmed and bonus added.");
+      const { txHash } = req.body;
+      const txInfo = await tonweb.provider.getTransaction(txHash);
+  
+      if (txInfo && txInfo.status === "confirmed") {
+        const payment = await Payment.findOne({ 
+          where: { txHash },
+          include: [User]
+        });
+  
+        if (!payment) {
+          return res.status(404).json({ error: "Payment not found" });
         }
-      } catch (error) {
-        console.error("Error checking transaction status:", error);
+  
+        // Обновление статуса платежа
+        payment.status = "confirmed";
+        await payment.save();
+  
+        // Создание записи в истории
+        await History.create({
+          type: 'transfer', // или другой тип из ENUM
+          amount: payment.amount,
+          currency: 'TON',
+          from_address: payment.senderAddress,
+          to_address: payment.recipientAddress,
+          tx_hash: txHash,
+          status: 'completed',
+          userId: payment.userId
+        });
+  
+        // Начисление бонусов
+        await BonusService.addBonus(payment.userId, payment.amount);
+  
+        console.log("Transaction confirmed and history updated");
+        return res.json({ status: 'confirmed' });
       }
-}
+    } catch (error) {
+      console.error("Error checking transaction status:", error);
+      return res.status(500).json({ error: "Transaction check failed" });
+    }
+  }
