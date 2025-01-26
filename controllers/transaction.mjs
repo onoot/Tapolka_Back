@@ -16,14 +16,34 @@ export const prepareTransaction = async (req, res) => {
             return res.status(401).json({ message: "Unauthorized" });
         }
 
-        const { senderAddress, recipientAddress, amount, userId } = req.body;
-        
-       // 1. Преобразуем userId к строке
-       const userIdString = String(userId);
-        console.log(JSON.stringify(userIdString));
-       // 2. Поиск пользователя
+       // Логируем тело запроса для анализа структуры
+       console.log('Request body:', JSON.stringify(req.body, null, 2));
+
+       // Извлекаем userId из тела запроса
+       const { senderAddress, recipientAddress, amount, userId: rawUserId } = req.body;
+
+       // 1. Проверка наличия userId
+       if (!rawUserId) {
+           return res.status(400).json({ error: "Missing userId" });
+       }
+
+       // 2. Обработка случая, когда userId - объект
+       let userIdValue;
+       if (typeof rawUserId === 'object' && rawUserId.id) {
+           userIdValue = rawUserId.id;
+       } else {
+           userIdValue = rawUserId;
+       }
+
+       // 3. Преобразование к строке
+       const userIdString = String(userIdValue);
+       console.log('Processed userId:', userIdString);
+
+       // 4. Поиск пользователя
        const user = await User.findOne({ 
-           where: { telegramId: userIdString } // Используем строковый формат
+           where: { 
+               telegramId: userIdString 
+           } 
        });
 
        if (!user) {
