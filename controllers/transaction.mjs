@@ -187,3 +187,44 @@ export const checkTransaction = async (req, res) => {
       return res.status(500).json({ error: "Transaction check failed" });
     }
   }
+
+  export const airdrop = async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+
+        if (!token || !VerifJWT(token)) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        //формируем ответ на запрос в виде JSON
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ message: 'User ID is required' });
+        }
+        const user = await User.findOne({ where: { id } });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        //получаем из History последние 100 тразакций
+        const transactions = await History.findAll({
+            where: { status: 'completed' },
+            limit: 100,
+            order: [['createdAt', 'DESC']],
+        });
+
+        const userTransactions = user?.transactions || {};
+        const dailyCount = userTransactions.daily?.count || 0;
+        const tasksCount = userTransactions.tasks?.count || 0;
+        const combo = user?.count_win_combo||0
+
+        // Складываем общее количество транзакций
+        const totalTransactions = dailyCount + tasksCount;
+        const totalTask = dailyCount + tasksCount+combo;
+
+        res.status(200).json({
+            total:totalTransactions,
+            task:totalTask,
+            history:transactions,
+        });
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
