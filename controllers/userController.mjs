@@ -24,17 +24,17 @@ export const getTime = () => {
 export const login = async (req, res) => {
   try {
     const initData = req.query;
-    console.log(initData)
-    
+
     if (!initData) {
       return res.status(400).json({ message: 'Missing initData' });
     }
+
     // Шаг 1: Парсим данные пользователя
     let user;
     try {
-      user = JSON.parse(initData.user); // Декодируем JSON-строку
+      user = JSON.parse(initData.user[0]); // Используем первый элемент массива
     } catch (e) {
-      console.log(user)
+      console.error('Ошибка парсинга данных пользователя:', e);
       return res.status(400).json({ message: 'Invalid user data format' });
     }
 
@@ -43,7 +43,7 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'Missing user ID' });
     }
 
-    // Шаг 3: Поиск/создание пользователя 
+    // Шаг 3: Поиск/создание пользователя
     let existingUser = await User.findOne({
       where: { 
         telegramId: user.id.toString() // Преобразуем ID в строку
