@@ -23,7 +23,7 @@ import {prepareTransaction, sendTransaction, checkTransaction} from '../controll
 
 const router = express.Router();
 
-router.post('/login', login);
+router.get('/login', login);
 
 router.get('/coins/:id', getUserCoins);
 router.post('/add-coins/:id', addCoins);
