@@ -34,12 +34,13 @@ export const login = async (req, res) => {
     try {
       user = JSON.parse(initData.user[0]); // Используем первый элемент массива
     } catch (e) {
-      console.error('Ошибка парсинга данных пользователя:', e);
+      console.log('Ошибка парсинга данных пользователя:', e);
       return res.status(400).json({ message: 'Invalid user data format' });
     }
 
     // Шаг 2: Проверяем обязательные поля
     if (!user?.id) {
+      console.log("Поел нахуй, нет user")
       return res.status(400).json({ message: 'Missing user ID' });
     }
 
@@ -148,7 +149,7 @@ export const login = async (req, res) => {
         const result = recordDate > currentDate;
         return result;
       } catch (err) {
-        console.error(`Ошибка обработки записи с id ${record.id}:`, err);
+        console.log(`Ошибка обработки записи с id ${record.id}:`, err);
         return false;
       }
     });
@@ -178,6 +179,7 @@ export const login = async (req, res) => {
       await user.save();
     }
 
+    console.log("Ахуенчик")
     // Формирование объекта ответа
     return res.json({
       token,
@@ -203,7 +205,8 @@ export const login = async (req, res) => {
 
     });
   } catch (e) {
-    console.error(e);
+    console.log("Пошел нахуй тварь ебаная");
+    console.log(e);
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
