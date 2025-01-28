@@ -3,7 +3,7 @@ import { DataTypes } from 'sequelize';
 import { sequelize } from '../config/database.mjs';
 import Role from './Role.mjs';
 
-export const User = sequelize.define('User', {
+const User = sequelize.define('User', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -162,3 +162,5 @@ export const User = sequelize.define('User', {
 });
 
 User.belongsTo(Role, { foreignKey: 'roleId', as: 'role' });
+
+export default User;

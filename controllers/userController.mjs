@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import moment from 'moment-timezone';
 import { Op } from 'sequelize';
 
-import User from '../models/User.mjs';
+import User from '../models/user.mjs';
 import Role from '../models/Role.mjs';
 import Task from '../models/Task.mjs';
 import Daily from '../models/Daily.mjs';
@@ -24,7 +24,8 @@ export const getTime = () => {
 export const login = async (req, res) => {
   try {
     const { initData } = req.body;
-    
+    console.log('Received initData:', initData);
+
     if (!initData) {
       return res.status(400).json({ error: 'No initialization data provided' });
     }
@@ -32,6 +33,7 @@ export const login = async (req, res) => {
     // Парсим данные из initData
     const urlParams = new URLSearchParams(initData);
     const userData = JSON.parse(urlParams.get('user') || '{}');
+    console.log('Parsed user data:', userData);
 
     if (!userData || !userData.id) {
       return res.status(400).json({ error: 'Invalid user data' });
@@ -39,7 +41,7 @@ export const login = async (req, res) => {
 
     // Ищем или создаем пользователя
     let [user, created] = await User.findOrCreate({
-      where: { telegramId: userData.id },
+      where: { telegramId: userData.id.toString() },
       defaults: {
         firstName: userData.first_name || '',
         lastName: userData.last_name || '',
@@ -47,7 +49,8 @@ export const login = async (req, res) => {
         languageCode: userData.language_code || 'en',
         money: 0,
         rank: 0,
-        // другие начальные значения...
+        roleId: 4,
+        energy: 500,
       }
     });
 
