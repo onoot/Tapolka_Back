@@ -23,15 +23,8 @@ export const getTime = () => {
 
 export const login = async (req, res) => {
   try {
-    const { initData } = req.body;
-    
-    if (!initData) {
-      return res.status(400).json({ error: 'No initialization data provided' });
-    }
-
-    // Парсим данные из initData
-    const urlParams = new URLSearchParams(initData);
-    const userData = JSON.parse(urlParams.get('user') || '{}');
+    // Используем данные пользователя, которые уже проверены в middleware
+    const userData = req.telegramUser;
 
     if (!userData || !userData.id) {
       return res.status(400).json({ error: 'Invalid user data' });
@@ -39,15 +32,32 @@ export const login = async (req, res) => {
 
     // Ищем или создаем пользователя
     let [user, created] = await User.findOrCreate({
-      where: { telegramId: userData.id },
+      where: { telegramId: userData.id.toString() },
       defaults: {
         firstName: userData.first_name || '',
         lastName: userData.last_name || '',
+        name: userData.first_name || 'Guest',
         username: userData.username || '',
         languageCode: userData.language_code || 'en',
         money: 0,
         rank: 0,
-        // другие начальные значения...
+        roleId: 4,
+        energy: 500,
+        boost: {
+          fullEnergi: {
+            count: 3,
+            max_count: 3,
+            dateLastUpdate: new Date().toISOString(),
+          },
+          multiplier: {
+            level: 1,
+            max_level: 100,
+          },
+          energiLimit: {
+            level: 1,
+            max_level: 100,
+          },
+        }
       }
     });
 
