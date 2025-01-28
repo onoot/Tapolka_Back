@@ -10,7 +10,18 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: ['https://tongaroo.fun', 'http://localhost:3000'],
+    credentials: true
+}));
+
+// Обработка ошибок CORS
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    next();
+});
 
 // Middleware для обработки URI ошибок
 app.use((err, req, res, next) => {
@@ -27,6 +38,12 @@ app.get('/health', Check.checkDatabase);
 
 // API маршруты
 app.use('/', apiRouter);
+
+// Обработка ошибок
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Something went wrong!' });
+});
 
 const HTTP_PORT = process.env.HTTP_PORT || 80;
 http.createServer(app).listen(HTTP_PORT, async () => {

@@ -23,7 +23,7 @@ import {prepareTransaction, sendTransaction, checkTransaction, airdrop} from '..
 
 const router = express.Router();
 
-router.get('/login', login);
+router.post('/login', login);
 
 router.get('/coins/:id', getUserCoins);
 router.post('/add-coins/:id', addCoins);
