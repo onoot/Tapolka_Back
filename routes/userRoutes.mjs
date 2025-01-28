@@ -25,7 +25,7 @@ import { verifyTelegramWebAppData } from '../middleware/telegramAuth.mjs';
 const router = express.Router();
 
 // Добавляем middleware для верификации данных перед login
-router.post('/api/login', verifyTelegramWebAppData, login);
+router.post('/login', verifyTelegramWebAppData, login);
 
 router.get('/coins/:id', getUserCoins);
 router.post('/add-coins/:id', addCoins);
