@@ -1,9 +1,9 @@
 // models/User.mjs
 import { DataTypes } from 'sequelize';
-import sequelize from '../config/database.mjs';
+import { sequelize } from '../config/database.mjs';
 import Role from './Role.mjs';
 
-const User = sequelize.define('User', {
+export const User = sequelize.define('User', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -16,11 +16,19 @@ const User = sequelize.define('User', {
   },
   firstName: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   lastName: {
     type: DataTypes.STRING,
     allowNull: true,
+  },
+  username: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  languageCode: {
+    type: DataTypes.STRING,
+    defaultValue: 'en',
   },
   name: {
     type: DataTypes.STRING,
@@ -154,5 +162,3 @@ const User = sequelize.define('User', {
 });
 
 User.belongsTo(Role, { foreignKey: 'roleId', as: 'role' });
-
-export default User;

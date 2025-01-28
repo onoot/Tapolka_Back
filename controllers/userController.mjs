@@ -23,191 +23,69 @@ export const getTime = () => {
 
 export const login = async (req, res) => {
   try {
-    const initData = req.query;
-
+    const { initData } = req.body;
+    
     if (!initData) {
-      return res.status(400).json({ message: 'Missing initData' });
+      return res.status(400).json({ error: 'No initialization data provided' });
     }
 
-    // Шаг 1: Парсим данные пользователя
-    let user;
-    try {
-      user = JSON.parse(initData.user[0]); // Используем первый элемент массива
-    } catch (e) {
-      console.log('Ошибка парсинга данных пользователя:', e);
-      return res.status(400).json({ message: 'Invalid user data format' });
+    // Парсим данные из initData
+    const urlParams = new URLSearchParams(initData);
+    const userData = JSON.parse(urlParams.get('user') || '{}');
+
+    if (!userData || !userData.id) {
+      return res.status(400).json({ error: 'Invalid user data' });
     }
 
-    // Шаг 2: Проверяем обязательные поля
-    if (!user?.id) {
-      console.log("Поел нахуй, нет user")
-      return res.status(400).json({ message: 'Missing user ID' });
-    }
-
-    // Шаг 3: Поиск/создание пользователя
-    let existingUser = await User.findOne({
-      where: { 
-        telegramId: user.id.toString() // Преобразуем ID в строку
-      },
-      include: { 
-        model: Role, 
-        as: 'role', 
-        attributes: ['name'] 
-      },
-    });
-
-    if (!existingUser) {
-      const defaultBoost = {
-        fullEnergi: {
-          count: 3,
-          max_count: 3,
-          dateLastUpdate: new Date().toISOString(),
-        },
-        multiplier: {
-          level: 1,
-          max_level: 100,
-        },
-        energiLimit: {
-          level: 1,
-          max_level: 100,
-        }
-      };
-
-      existingUser = await User.create({
-        telegramId: user.id.toString(),
-        firstName: user.first_name || '',
-        lastName: user.last_name || '',
-        username: user.username || '',
+    // Ищем или создаем пользователя
+    let [user, created] = await User.findOrCreate({
+      where: { telegramId: userData.id },
+      defaults: {
+        firstName: userData.first_name || '',
+        lastName: userData.last_name || '',
+        username: userData.username || '',
+        languageCode: userData.language_code || 'en',
         money: 0,
-        totalMoney: 0,
-        profit: 0,
-        energy: 500,
         rank: 0,
-        benefit: 0,
-        roleId: 4,
-        lastEnergyUpdate: new Date(),
-        combo_daily_tasks: [],
-        key: 0,
-        boost: defaultBoost,
-        transactions: {
-          daily: { count: 0, lastDate: new Date().toISOString() },
-          tasks: { count: 0, lastDate: new Date().toISOString() },
-          totalTokens: 0
-        }
-      });
-    }
-    if (!existingUser.boost) {
-      existingUser.boost = {
-        fullEnergi: {
-          count: 3,
-          max_count: 3,
-          dateLastUpdate: new Date().toISOString(),
-        },
-        multiplier: {
-          level: 1,
-          max_level: 100,
-        },
-        energiLimit: {
-          level: 1,
-          max_level: 100,
-        },
-      };
-      await existingUser.save();
-    }
-
-    const time = getTime();
-    const today = new Date();
-    const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 2);
-    const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2);
-    
-    const Rewarw_Data = await DailyCombo.findAll({
-      where: {
-        Data: {
-          [Op.between]: [startDate, endDate],
-        },
-      },
-      limit: 10,
-      order: [['id', 'DESC']],
-    });
-    
-
-    const filteredData = Rewarw_Data.filter(record => {
-      try {
-        if (!record.Data) {
-          console.warn(`Запись с id ${record.id} не содержит поля Data. Пропускаем...`);
-          return false;
-        }
-
-        const recordDate = new Date(record.Data);
-        const currentDate = new Date(time);
-
-        if (isNaN(recordDate.getTime())) {
-          console.error(`Ошибка преобразования Data в дату для записи с id ${record.id}. Значение Data: ${record.Data}`);
-          return false;
-        }
-
-        const result = recordDate > currentDate;
-        return result;
-      } catch (err) {
-        console.log(`Ошибка обработки записи с id ${record.id}:`, err);
-        return false;
+        // другие начальные значения...
       }
     });
 
-
-    // Обновление энергии пользователя перед отправкой данных клиенту
-    const updatedEnergy = await checkAndRegenerateEnergy(existingUser);
-
-    // Создание JWT токена
+    // Создаем токен
     const token = jwt.sign(
-      { userId: existingUser.id, username: existingUser.username },
-      JWT_SECRET,
-      { expiresIn: '1h' }
+      { id: user.id, telegramId: userData.id },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
     );
 
-    const win = existingUser?.win_combo || { status: false, date: null };
-    const todayDateString = today.toISOString().split('T')[0]; // Форматируем текущую дату без времени
-
-    const filteredD = Rewarw_Data.filter(item => {
-      const itemDateString = new Date(item.Data).toISOString().split('T')[0];
-      return itemDateString === todayDateString;
-    });
-
-    const winCombo = win.date > filteredD[0]?.Data ? [] : user.combo_daily_tasks;
-    if (win.date > filteredD[0]?.Data) {
-      user.combo_daily_tasks = [];
-      await user.save();
-    }
-
-    console.log("Ахуенчик")
-    // Формирование объекта ответа
-    return res.json({
+    // Формируем ответ
+    const response = {
       token,
-      id: existingUser.id,
-      telegramId: existingUser.telegramId,
-      name: existingUser.firstName || existingUser.name,
-      role: existingUser?.role?.name || 'User',
-      money: existingUser.money,
-      totalMoney: existingUser.totalMoney,
-      profit: existingUser.profit,
-      energy: updatedEnergy,
-      rank: existingUser.rank,
-      benefit: existingUser.benefit,
-      key: existingUser.key,
-      combo_daily_tasks: winCombo||[],
-      reward: {
-        reward: filteredData[0]?.reward || null,
-        date: filteredData[0]?.Data || null
-      },
-      wallet: existingUser?.wallet,
-      boost: existingUser?.boost,
-      win_combo_count: existingUser?.count_win_combo || 0,
+      id: user.id,
+      name: user.firstName || userData.first_name || '',
+      role: user.role || 'user',
+      money: user.money || 0,
+      totalMoney: user.totalMoney || 0,
+      profit: user.profit || 0,
+      energy: user.energy || 0,
+      rank: user.rank || 0,
+      benefit: user.benefit || 0,
+      key: user.key || 0,
+      daily: user.combo_daily_tasks || [],
+      reward: user.reward || null,
+      wallet: user.wallet || null,
+      boost: user.boost || null,
+      combo_count: user.combo_count || 0
+    };
 
+    res.json(response);
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      details: error.message
     });
-  } catch (e) {
-    console.log("Пошел нахуй тварь ебаная");
-    console.log(e);
-    return res.status(500).json({ message: 'Internal server error' });
   }
 };
 

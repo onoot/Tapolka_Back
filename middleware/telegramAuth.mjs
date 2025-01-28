@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 
 export const verifyTelegramWebAppData = (req, res, next) => {
+    console.log(req.body);
     try {
         const initData = req.query.initData || req.body.initData;
         if (!initData) {
