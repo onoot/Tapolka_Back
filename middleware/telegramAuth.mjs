@@ -1,7 +1,8 @@
 import crypto from 'crypto';
 
 export const verifyTelegramWebAppData = (req, res, next) => {
-    console.log(req.body);
+    console.log("Ебааать",req?.body);
+    console.log("Бляяять",req?.params);
     try {
         const initData = req.query.initData || req.body.initData;
         if (!initData) {
@@ -28,6 +29,7 @@ export const verifyTelegramWebAppData = (req, res, next) => {
             .digest('hex');
 
         if (calculatedHash !== hash) {
+            console.log('Пошел нахуй ишак', calculatedHash, hash);
             return res.status(401).json({ error: 'Invalid hash' });
         }
 
