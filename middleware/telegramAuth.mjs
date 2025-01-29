@@ -58,6 +58,7 @@ export const verifyTelegramWebAppData = (req, res, next) => {
         try {
             // const userData = JSON.parse(urlParams.get('user') || '{}');
             const userData = urlParams?.user;
+            console.log("Получены данные пользователя:", userData);
             req.telegramUser = userData;
         } catch (e) {
             console.error('Error parsing user data:', e);
