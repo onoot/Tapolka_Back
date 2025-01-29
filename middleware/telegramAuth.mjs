@@ -54,6 +54,15 @@ export const verifyTelegramWebAppData = (req, res, next) => {
             console.error('Hash verification failed');
         }
 
+        // Добавляем расшифрованные данные пользователя в request
+        try {
+            // const userData = JSON.parse(urlParams.get('user') || '{}');
+            const userData = urlParams?.user;
+            req.telegramUser = userData;
+        } catch (e) {
+            console.error('Error parsing user data:', e);
+        }
+
         next();
     } catch (error) {
         console.error('Telegram verification error:', error);
