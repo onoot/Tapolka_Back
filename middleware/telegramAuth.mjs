@@ -56,7 +56,7 @@ export const verifyTelegramWebAppData = (req, res, next) => {
 
         // Добавляем расшифрованные данные пользователя в request
         try {
-            const userData = JSON.stringify(urlParams.get('user') || '{}');
+            const userData = JSON.parse(urlParams.get('user') || '{}');
             console.log('Telegram user data:', userData);
             req.telegramUser = userData;
         } catch (e) {
