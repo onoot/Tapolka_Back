@@ -18,10 +18,24 @@ export const verifyTelegramWebAppData = (req, res, next) => {
 
         urlParams.delete('hash');
 
-        // Сортируем параметры
+        // Изменяем формирование строки для проверки
         const dataCheckString = Array.from(urlParams.entries())
             .sort(([a], [b]) => a.localeCompare(b))
-            .map(([key, value]) => `${key}=${value}`)
+            .map(([key, value]) => {
+                // Для поля user преобразуем объект в строку JSON без пробелов
+                if (key === 'user') {
+                    try {
+                        const userObj = JSON.parse(value);
+                        // Удаляем photo_url из объекта пользователя
+                        delete userObj.photo_url;
+                        return `${key}=${JSON.stringify(userObj)}`;
+                    } catch (e) {
+                        console.error('Error parsing user data:', e);
+                        return `${key}=${value}`;
+                    }
+                }
+                return `${key}=${value}`;
+            })
             .join('\n');
 
         if (!process.env.TELEGRAM_BOT_TOKEN) {
@@ -29,7 +43,6 @@ export const verifyTelegramWebAppData = (req, res, next) => {
             return res.status(500).json({ error: 'Server configuration error' });
         }
 
-        // Создаем HMAC
         const secret = crypto
             .createHmac('sha256', 'WebAppData')
             .update(process.env.TELEGRAM_BOT_TOKEN)
@@ -40,27 +53,23 @@ export const verifyTelegramWebAppData = (req, res, next) => {
             .update(dataCheckString)
             .digest('hex');
 
-        console.log('Проверка хешей:', {
-            received: hash,
-            calculated: calculatedHash,
-            dataCheckString
-        });
-
         if (calculatedHash !== hash) {
-            // return res.status(401).json({ 
-            //     error: 'Invalid hash',
-            //     details: 'Hash verification failed'
-            // });
             console.error('Hash verification failed');
+            return res.status(401).json({ 
+                error: 'Invalid hash',
+                details: 'Hash verification failed'
+            });
         }
 
-        // Добавляем расшифрованные данные пользователя в request
         try {
             const userData = JSON.parse(urlParams.get('user') || '{}');
-            console.log('Telegram user data:', userData);
             req.telegramUser = userData;
         } catch (e) {
             console.error('Error parsing user data:', e);
+            return res.status(401).json({ 
+                error: 'Invalid user data',
+                details: e.message 
+            });
         }
 
         next();
