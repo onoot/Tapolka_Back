@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+
 export const verifyTelegramWebAppData = (req, res, next) => {
     try {
         const initData = req.body.initData; // Получаем из тела запроса
@@ -16,6 +17,7 @@ export const verifyTelegramWebAppData = (req, res, next) => {
         }
 
         urlParams.delete('hash');
+        
         const dataCheckString = Array.from(urlParams.entries())
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([key, value]) => {
@@ -30,9 +32,11 @@ export const verifyTelegramWebAppData = (req, res, next) => {
                         return `${key}=${value}`;
                     }
                 }
-                return `${key}=${value}`;
+                return `${key}=${decodeURIComponent(value)}`; // Убедитесь, что значение также декодировано
             })
             .join('\n');
+
+        console.log('dataCheckString:', dataCheckString); // Логирование для отладки
 
         if (!process.env.TELEGRAM_BOT_TOKEN) {
             console.error('BOT_TOKEN not found in environment variables');
