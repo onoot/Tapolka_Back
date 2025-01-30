@@ -17,23 +17,11 @@ export const verifyTelegramWebAppData = (req, res, next) => {
         }
 
         urlParams.delete('hash');
-        
+        urlParams.delete('signature'); // Удаляем signature из проверки
+
         const dataCheckString = Array.from(urlParams.entries())
             .sort(([a], [b]) => a.localeCompare(b))
-            .map(([key, value]) => {
-                if (key === 'user') {
-                    try {
-                        const decodedValue = decodeURIComponent(value);
-                        const userObj = JSON.parse(decodedValue);
-                        delete userObj.photo_url;
-                        return `${key}=${JSON.stringify(userObj)}`;
-                    } catch (e) {
-                        console.error('Error parsing user data:', e);
-                        return `${key}=${value}`;
-                    }
-                }
-                return `${key}=${decodeURIComponent(value)}`; // Убедитесь, что значение также декодировано
-            })
+            .map(([key, value]) => `${key}=${value}`)
             .join('\n');
 
         console.log('dataCheckString:', dataCheckString); // Логирование для отладки
@@ -70,19 +58,19 @@ export const verifyTelegramWebAppData = (req, res, next) => {
             const userValue = urlParams.get('user');
             const decodedUserValue = decodeURIComponent(userValue);
             const userData = JSON.parse(decodedUserValue);
-            console.log('Пользовательские данные:', userData); // Добавьте эту строку для отладки
+            console.log('Пользовательские данные:', userData); 
             req.telegramUser = userData;
             next();
         } catch (e) {
             console.error('Error parsing user data:', e);
-            return res.status(401).json({ 
+            return res.status(400).json({ 
                 error: 'Invalid user data',
                 details: e.message 
             });
         }
     } catch (error) {
         console.error('Telegram verification error:', error);
-        res.status(401).json({ 
+        res.status(500).json({ 
             error: 'Authentication failed',
             details: error.message 
         });
