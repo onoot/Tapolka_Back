@@ -71,7 +71,7 @@ export const login = async (req, res) => {
     // Формируем ответ
     const response = {
       token,
-      ...user
+      ...user.dataValues
     };
 
     res.json(response);
@@ -870,7 +870,7 @@ export const boost = async (req, res) => {
       return res.status(401).json({ message: 'Missing authorization token' });
     }
 
-    const verified = await VerifJWT(token);
+    const verified = VerifJWT(token);
     if (!verified) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
