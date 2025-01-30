@@ -9,7 +9,16 @@ export const verifyTelegramWebAppData = (req, res, next) => {
             return res.status(401).json({ error: 'No initialization data provided' });
         }
 
-        const urlParams = new URLSearchParams(initData);
+        // Пробуем распарсить initData как JSON, если это строка
+        let parsedInitData;
+        try {
+            parsedInitData = typeof initData === 'string' ? JSON.parse(initData) : initData;
+        } catch (e) {
+            console.log("initData не является JSON строкой, используем как есть");
+            parsedInitData = initData;
+        }
+
+        const urlParams = new URLSearchParams(parsedInitData);
         const hash = urlParams.get('hash');
         
         if (!hash) {
@@ -19,28 +28,25 @@ export const verifyTelegramWebAppData = (req, res, next) => {
         urlParams.delete('hash');
         console.log("urlParams", urlParams);
 
+        // Получаем user напрямую из initData
+        const userStr = urlParams.get('user');
+        let user;
+        try {
+            user = typeof userStr === 'string' ? JSON.parse(userStr) : userStr;
+        } catch (e) {
+            console.error('Error parsing user string:', e);
+            user = userStr;
+        }
+
         const dataCheckString = Array.from(urlParams.entries())
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([key, value]) => {
                 if (key === 'user') {
-                    try {
-                        // Проверяем, является ли значение строкой '[object Object]'
-                        if (value === '[object Object]') {
-                            // Получаем оригинальный объект пользователя из req.body
-                            const userObj = req.body.user;
-                            if (userObj && typeof userObj === 'object') {
-                                delete userObj.photo_url;
-                                return `${key}=${JSON.stringify(userObj)}`;
-                            }
-                        }
-                        // Если это не '[object Object]', пробуем декодировать и распарсить
-                        const decodedValue = decodeURIComponent(value);
-                        const userObj = JSON.parse(decodedValue);
-                        delete userObj.photo_url;
-                        return `${key}=${JSON.stringify(userObj)}`;
-                    } catch (e) {
-                        console.error('Error parsing user data:', e);
-                        return `${key}=${value}`;
+                    const userObj = typeof value === 'object' ? value : user;
+                    if (userObj && typeof userObj === 'object') {
+                        const cleanUser = { ...userObj };
+                        delete cleanUser.photo_url;
+                        return `${key}=${JSON.stringify(cleanUser)}`;
                     }
                 }
                 return `${key}=${value}`;
@@ -75,19 +81,14 @@ export const verifyTelegramWebAppData = (req, res, next) => {
             });
         }
 
-        try {
-            // Используем объект пользователя из req.body
-            const userData = req.body.user;
-            if (!userData || typeof userData !== 'object') {
-                throw new Error('Invalid user data format');
-            }
-            req.telegramUser = userData;
+        // Используем распарсенный объект пользователя
+        if (user && typeof user === 'object') {
+            req.telegramUser = user;
             next();
-        } catch (e) {
-            console.error('Error parsing user data:', e);
+        } else {
             return res.status(401).json({ 
                 error: 'Invalid user data',
-                details: e.message 
+                details: 'User data is not an object'
             });
         }
     } catch (error) {
