@@ -17,7 +17,7 @@ export const verifyTelegramWebAppData = (req, res, next) => {
         }
 
         urlParams.delete('hash');
-
+        console.log("urlParams", urlParams);
         const dataCheckString = Array.from(urlParams.entries())
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([key, value]) => {
@@ -25,7 +25,9 @@ export const verifyTelegramWebAppData = (req, res, next) => {
                     try {
                         // Декодируем значение перед парсингом
                         const decodedValue = decodeURIComponent(value);
+                        console.log("decodedValue", decodedValue);
                         const userObj = JSON.parse(decodedValue);
+                        console.log("userObj", userObj);
                         delete userObj.photo_url;
                         return `${key}=${JSON.stringify(userObj)}`;
                     } catch (e) {
