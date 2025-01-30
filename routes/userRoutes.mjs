@@ -21,11 +21,12 @@ import {
 
 import {prepareTransaction, sendTransaction, checkTransaction, airdrop} from '../controllers/transaction.mjs'
 import { verifyTelegramWebAppData } from '../middleware/telegramAuth.mjs';
+import { validateTelegramData } from '../meddleware/verificationTG.mjs';
 
 const router = express.Router();
 
 // Добавляем middleware для верификации данных перед login
-router.post('/login', verifyTelegramWebAppData, login);
+router.post('/login', validateTelegramData, login);
 
 router.get('/coins/:id', getUserCoins);
 router.post('/add-coins/:id', addCoins);
