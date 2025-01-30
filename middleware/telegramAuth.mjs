@@ -56,7 +56,7 @@ export const verifyTelegramWebAppData = (req, res, next) => {
         });
 
         if (calculatedHash !== hash) {
-            console.log("Пся");
+            console.log(false);
             // return res.status(401).json({ 
             //     error: 'Invalid hash',
             //     details: 'Hash verification failed'
