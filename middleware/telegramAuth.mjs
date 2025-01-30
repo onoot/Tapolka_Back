@@ -18,16 +18,24 @@ export const verifyTelegramWebAppData = (req, res, next) => {
 
         urlParams.delete('hash');
         console.log("urlParams", urlParams);
+
         const dataCheckString = Array.from(urlParams.entries())
             .sort(([a], [b]) => a.localeCompare(b))
             .map(([key, value]) => {
                 if (key === 'user') {
                     try {
-                        // Декодируем значение перед парсингом
+                        // Проверяем, является ли значение строкой '[object Object]'
+                        if (value === '[object Object]') {
+                            // Получаем оригинальный объект пользователя из req.body
+                            const userObj = req.body.user;
+                            if (userObj && typeof userObj === 'object') {
+                                delete userObj.photo_url;
+                                return `${key}=${JSON.stringify(userObj)}`;
+                            }
+                        }
+                        // Если это не '[object Object]', пробуем декодировать и распарсить
                         const decodedValue = decodeURIComponent(value);
-                        console.log("decodedValue", decodedValue);
                         const userObj = JSON.parse(decodedValue);
-                        console.log("userObj", userObj);
                         delete userObj.photo_url;
                         return `${key}=${JSON.stringify(userObj)}`;
                     } catch (e) {
@@ -61,16 +69,18 @@ export const verifyTelegramWebAppData = (req, res, next) => {
         });
 
         if (calculatedHash !== hash) {
-            // return res.status(401).json({ 
-            //     error: 'Invalid hash',
-            //     details: 'Hash verification failed'
-            // });
+            return res.status(401).json({ 
+                error: 'Invalid hash',
+                details: 'Hash verification failed'
+            });
         }
 
         try {
-            const userValue = urlParams.get('user');
-            const decodedUserValue = decodeURIComponent(userValue);
-            const userData = JSON.parse(decodedUserValue);
+            // Используем объект пользователя из req.body
+            const userData = req.body.user;
+            if (!userData || typeof userData !== 'object') {
+                throw new Error('Invalid user data format');
+            }
             req.telegramUser = userData;
             next();
         } catch (e) {
