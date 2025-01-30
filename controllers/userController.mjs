@@ -70,11 +70,11 @@ export const login = async (req, res) => {
     //получаем роль по roleid
     const role = await Role.findOne({ where: { id: user.roleId } });
     // Формируем ответ
+    const { createdAt, updatedAt, ...userInfo } = user.dataValues;
     const response = {
       token,
-      ...user.dataValues,
-      role: role?.name || 'user'
-      
+      role: role?.name || 'user', 
+      userInfo
     };
 
     res.json(response);
