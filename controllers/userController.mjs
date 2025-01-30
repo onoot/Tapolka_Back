@@ -23,12 +23,9 @@ export const getTime = () => {
 
 export const login = async (req, res) => {
   try {
-    const initData = req.query.initData || req.body.initData;
-
     // Используем данные пользователя, которые уже проверены в middleware
-    const userData = initData?.user;
-console.log(userData);
-console.log(initData);
+    const userData = req.telegramUser;
+
     if (!userData || !userData.id) {
       return res.status(400).json({ error: 'Invalid user data' });
     }
