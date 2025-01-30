@@ -71,21 +71,7 @@ export const login = async (req, res) => {
     // Формируем ответ
     const response = {
       token,
-      id: user.id,
-      name: user.firstName || userData.first_name || '',
-      role: user.role || 'user',
-      money: user.money || 0,
-      totalMoney: user.totalMoney || 0,
-      profit: user.profit || 0,
-      energy: user.energy || 0,
-      rank: user.rank || 0,
-      benefit: user.benefit || 0,
-      key: user.key || 0,
-      daily: user.combo_daily_tasks || [],
-      reward: user.reward || null,
-      wallet: user.wallet || null,
-      boost: user.boost || null,
-      combo_count: user.combo_count || 0
+      ...user
     };
 
     res.json(response);
