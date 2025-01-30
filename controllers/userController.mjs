@@ -67,11 +67,14 @@ export const login = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
-
+    //получаем роль по roleid
+    const role = await Role.findOne({ where: { id: user.roleId } });
     // Формируем ответ
     const response = {
       token,
-      ...user.dataValues
+      ...user.dataValues,
+      role: role?.name || 'user'
+      
     };
 
     res.json(response);
