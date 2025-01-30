@@ -906,33 +906,33 @@ export const boost = async (req, res) => {
       const lastUpdate = new Date(boostData.dateLastUpdate).getTime();
       const timeSinceLastUpdate = now - lastUpdate;
     
-      console.log("Время",timeSinceLastUpdate, now, lastUpdate);
-      // Проверяем, доступен ли буст
-      if (!boostData||boostData?.cont <= 0) {
+      console.log("Время", timeSinceLastUpdate, now, lastUpdate);
+      
+      // Сначала проверяем, прошло ли 12 часов после последнего обновления
+      if (timeSinceLastUpdate >= 43200000) {
+        // Полное восстановление счётчика до максимального значения
+        boostData.count = boostData.max_count;
+      }
+
+      // Теперь проверяем, доступен ли буст
+      if (!boostData || boostData.count <= 0) {
         return res.status(400).json({ message: 'Boost cannot be used yet' });
       }
     
       // Уменьшаем счётчик и обновляем энергию
-      boostData.cont -= 1;
-      if (!boostData.cont)
-        boostData.cont = 0;
-      // Проверяем, прошло ли 12 часов после последнего обновления
-      if (timeSinceLastUpdate >= 43200000) {
-        // Полное восстановление счётчика до максимального значения
-        boostData.cont = boostData.max_count;
-        boostData.dateLastUpdate = new Date();
-      }
+      boostData.count = Math.max(0, boostData.count - 1);
       user.energy = 500 + limitEnergy;
+
       const full = {
-        cont: boostData.cont,
+        count: boostData.count,
         max_count: 3,
         dateLastUpdate: now
       }
 
       // Создаём обновлённый объект boost, сохраняя старые значения
       const updatedBoost = {
-        ...userBoosts, // Сохраняем старые значения
-        fullEnergi: full, // Обновляем только fullEnergi
+        ...userBoosts,
+        fullEnergi: full,
       };
     
       // Перезаписываем объект boost в базе данных
