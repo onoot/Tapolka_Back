@@ -128,7 +128,8 @@ const User = sequelize.define('User', {
       model: Role,
       key: 'id',
     },
-    allowNull: true,
+    allowNull: false,
+    defaultValue: 4, 
   },
 }, {
   tableName: 'users',
