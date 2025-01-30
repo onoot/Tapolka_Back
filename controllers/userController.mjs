@@ -922,7 +922,7 @@ export const boost = async (req, res) => {
       // Уменьшаем счётчик и обновляем энергию
       boostData.count = Math.max(0, boostData.count - 1);
       user.energy = 500 + limitEnergy;
-
+      console.log("boostData", boostData);
       const full = {
         count: boostData.count,
         max_count: 3,
