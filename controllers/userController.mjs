@@ -470,7 +470,12 @@ export const getMineItems = async (req, res) => {
       return taskCopy;
     });
 
-    const count = user?.Invited?.split(',').length
+    const count = Array.isArray(user?.Invited) 
+      ? user.Invited.length 
+      : typeof user?.Invited === 'string' 
+        ? user.Invited.split(',').length 
+        : 0;
+
     res.json({ updatedTasks: updatedTasks, unlock: count });
   } catch (error) {
     console.error('Error getting task list:', error);
