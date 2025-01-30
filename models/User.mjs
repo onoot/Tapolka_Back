@@ -22,6 +22,14 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: true,
   },
+  username: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  languageCode: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   name: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -59,27 +67,27 @@ const User = sequelize.define('User', {
   },
   key: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
+    allowNull: true,
   },
   benefit: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,
     defaultValue: 0,
   },
-  wallet:{
+  wallet: {
     type: DataTypes.STRING,
     allowNull: true,
   },
-  Invited:{
+  Invited: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+  },
+  referral: {
     type: DataTypes.STRING,
     allowNull: true,
   },
-  referral:{
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
-  referl_link:{
+  referl_link: {
     type: DataTypes.STRING,
     allowNull: true,
   },
@@ -89,56 +97,30 @@ const User = sequelize.define('User', {
   },
   daily_tasks: {
     type: DataTypes.JSON,
-    allowNull: false,
-    defaultValue: [],
+    allowNull: true,
   },
   combo_daily_tasks: {
     type: DataTypes.JSON,
-    allowNull: false,
-    defaultValue: [],
+    allowNull: true,
   },
   win_combo: {
-    type: DataTypes.JSON,
+    type: DataTypes.INTEGER,
     allowNull: false,
-    defaultValue: [],
-  }, 
+    defaultValue: 0,
+  },
   count_win_combo: {
     type: DataTypes.INTEGER,
-    allowNull: true,
-  }, 
-  boost: {
-    type: DataTypes.JSON,
     allowNull: false,
-    defaultValue: {
-      fullEnergi: {
-        count: 3,
-        max_count: 3,
-        dateLastUpdate: new Date().toISOString(), 
-      },
-      multiplier: {
-        level: 1,
-        max_level: 100,
-      },
-      energiLimit: {
-        level: 1,
-        max_level: 100,
-      },
-    },
+    defaultValue: 0,
+  },
+  boost: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
   },
   transactions: {
     type: DataTypes.JSON,
-    allowNull: false,
-    defaultValue: {
-      daily: {
-        count: 0,
-        lastDate: new Date().toISOString(),
-      },
-      tasks: {
-        count: 0,
-        lastDate: new Date().toISOString(),
-      },
-      totalTokens: 0
-    },
+    allowNull: true,
   },
   roleId: {
     type: DataTypes.INTEGER,
@@ -146,13 +128,12 @@ const User = sequelize.define('User', {
       model: Role,
       key: 'id',
     },
-    allowNull: false,
-    defaultValue: 4, 
+    allowNull: true,
   },
 }, {
   tableName: 'users',
 });
 
-User.belongsTo(Role, { foreignKey: 'roleId', as: 'role' });
+User.belongsTo(Role, { foreignKey: 'roleId' });
 
 export default User;
